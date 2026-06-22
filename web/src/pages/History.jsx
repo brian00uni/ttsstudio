@@ -64,8 +64,14 @@ export default function History() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">TTS 생성 내역</h1>
         <button onClick={() => load(page)} title="새로고침"
-          className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
-          ⟳
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className={loading ? "animate-spin" : ""}>
+            <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+            <polyline points="21 3 21 9 15 9" />
+          </svg>
+          새로고침
         </button>
       </div>
 

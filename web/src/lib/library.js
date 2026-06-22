@@ -17,7 +17,7 @@ export async function saveGeneration(userId, payload, result) {
     try { srtText = await (await fetch(result.srt_url)).text(); } catch { /* optional */ }
   }
 
-  const { error } = await supabase.from("generations").insert({
+  const row = {
     user_id: userId,
     text: payload.text || "",
     voice: result.voice || payload.voice || null,
@@ -28,7 +28,13 @@ export async function saveGeneration(userId, payload, result) {
     audio_path: objectPath,
     srt_text: srtText,
     mime: "audio/mpeg",
-  });
+  };
+  let { error } = await supabase.from("generations").insert(row);
+  // If the srt_text column hasn't been added yet, save without it (don't lose the record).
+  if (error && /srt_text/.test(error.message || "")) {
+    delete row.srt_text;
+    ({ error } = await supabase.from("generations").insert(row));
+  }
   if (error) throw error;
   return objectPath;
 }
