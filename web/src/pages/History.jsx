@@ -34,6 +34,7 @@ export default function History() {
   const [audioUrls, setAudioUrls] = useState({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [selected, setSelected] = useState(null);
 
   const load = useCallback(async (p) => {
     setLoading(true); setErr("");
@@ -97,13 +98,14 @@ export default function History() {
                 <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">아직 생성한 음성이 없습니다.</td></tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={r.id} className="border-t border-slate-50 hover:bg-slate-50">
+                  <tr key={r.id} onClick={() => setSelected(r)}
+                    className="cursor-pointer border-t border-slate-50 hover:bg-slate-50">
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDate(r.created_at)}</td>
                     <td className="px-4 py-3" title={r.text}>{truncate(r.text)}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDuration(r.duration)}</td>
                     <td className="px-4 py-3 text-center">
                       {audioUrls[r.id] ? (
-                        <a href={audioUrls[r.id]} download title="오디오 다운로드"
+                        <a href={audioUrls[r.id]} download title="오디오 다운로드" onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">
                           ⬇ MP3
                         </a>
@@ -111,14 +113,14 @@ export default function History() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.srt_text ? (
-                        <button onClick={() => downloadSrt(r)} title="SRT 다운로드"
+                        <button onClick={(e) => { e.stopPropagation(); downloadSrt(r); }} title="SRT 다운로드"
                           className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">
                           ⬇ SRT
                         </button>
                       ) : <span className="text-xs text-slate-300">-</span>}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button onClick={() => remove(r)} title="삭제"
+                      <button onClick={(e) => { e.stopPropagation(); remove(r); }} title="삭제"
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
                         🗑
                       </button>
@@ -143,6 +145,58 @@ export default function History() {
           ))}
           <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}
             className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40">›</button>
+        </div>
+      )}
+
+      {/* 상세 모달 */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setSelected(null)}>
+          <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 p-4">
+              <h3 className="text-sm font-bold text-slate-800">생성 상세</h3>
+              <button onClick={() => setSelected(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-5">
+              <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                <span>{fmtDate(selected.created_at)}</span>
+                {selected.voice && <span>음성: {selected.voice}</span>}
+                {selected.lang && <span>언어: {selected.lang}</span>}
+                <span>길이: {fmtDuration(selected.duration)}</span>
+              </div>
+
+              {audioUrls[selected.id] && (
+                <audio controls autoPlay src={audioUrls[selected.id]} className="mb-4 w-full" />
+              )}
+
+              <div className="mb-1 text-xs font-semibold text-slate-500">내용</div>
+              <div className="max-h-60 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
+                {selected.text || "(내용 없음)"}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 border-t border-slate-100 p-4">
+              {audioUrls[selected.id] && (
+                <a href={audioUrls[selected.id]} download
+                  className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                  MP3 다운로드
+                </a>
+              )}
+              {selected.srt_text && (
+                <button onClick={() => downloadSrt(selected)}
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+                  자막(SRT)
+                </button>
+              )}
+              <button onClick={() => { const r = selected; setSelected(null); remove(r); }}
+                className="ml-auto rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
