@@ -22,14 +22,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
       - name: Deploy to Vercel (production)
+        # Build on Vercel's cloud so project env vars (SUPABASE_URL/ANON_KEY)
+        # are injected into the build (build-web.sh reads them). A local
+        # `vercel build` does NOT expose project env vars to the build shell.
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
 
   huggingface:
     name: Deploy backend (HF Space)
