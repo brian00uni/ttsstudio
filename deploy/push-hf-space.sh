@@ -18,13 +18,25 @@ HF_README="$REPO_ROOT/deploy/hf-space/README.md"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
+# Authenticate git pushes to HF using the token stored by `hf auth login`.
+HF="$BACKEND/.venv/bin/hf"
+TOKEN="$("$HF" auth token 2>/dev/null || true)"
+[ -n "$TOKEN" ] || { echo "No HF token. Run: $HF auth login"; exit 1; }
+REMOTE="https://user:${TOKEN}@huggingface.co/spaces/$SPACE"
+
 echo "[1/4] Cloning Space repo: https://huggingface.co/spaces/$SPACE"
-git clone "https://huggingface.co/spaces/$SPACE" "$WORK/space"
+git clone "$REMOTE" "$WORK/space"
 
 echo "[2/4] Syncing backend files into the Space"
+# Exclude binary assets (fonts, images, audio): HF rejects non-LFS binaries,
+# and these are frontend assets served by Vercel, not needed by the API backend.
 rsync -a --delete \
   --exclude '.git/' --exclude '.venv/' --exclude '__pycache__/' \
   --exclude 'data/' --exclude '.DS_Store' \
+  --exclude 'public/voice-samples/' --exclude 'public/font/' \
+  --exclude '*.wav' --exclude '*.mp3' \
+  --exclude '*.jpg' --exclude '*.jpeg' --exclude '*.png' --exclude '*.ico' \
+  --exclude '*.ttf' --exclude '*.woff' --exclude '*.woff2' \
   "$BACKEND"/ "$WORK/space"/
 # HF Space root README with required metadata header
 cp "$HF_README" "$WORK/space/README.md"
@@ -37,6 +49,6 @@ git -c user.email="brian00uni@gmail.com" -c user.name="brian00uni" \
   || { echo "Nothing to commit."; exit 0; }
 
 echo "[4/4] Push to Hugging Face"
-git push origin HEAD:main
+git push "$REMOTE" HEAD:main
 
 echo "Done. Space building at: https://huggingface.co/spaces/$SPACE"

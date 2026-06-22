@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bash deploy/build-web.sh",
+  "outputDirectory": "web-dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://brian00uni-ttsstudio-backend.hf.space/api/:path*" },
+    { "source": "/audio/:path*", "destination": "https://brian00uni-ttsstudio-backend.hf.space/audio/:path*" },
+    { "source": "/health", "destination": "https://brian00uni-ttsstudio-backend.hf.space/health" },
+    { "source": "/license-notices", "destination": "https://brian00uni-ttsstudio-backend.hf.space/license-notices" }
+  ]
+}

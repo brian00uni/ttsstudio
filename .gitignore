@@ -29,3 +29,6 @@ Thumbs.db
 **/.cache/
 *.onnx
 *.bin
+
+# Vercel build output
+web-dist/
