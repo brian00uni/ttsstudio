@@ -7,7 +7,7 @@ services:
     repo: https://github.com/brian00uni/ttsstudio
     dockerfilePath: supertonic3-local-tts/Dockerfile
     dockerContext: supertonic3-local-tts
-    plan: starter        # 512MB may be tight for ONNX; bump to "standard" if OOM
+    plan: free           # free: 512MB RAM, spins down when idle, no persistent disk
     region: singapore    # closest Render region to Korea
     healthCheckPath: /health
     autoDeploy: true
@@ -16,9 +16,9 @@ services:
         value: "1"
       - key: SUPERTONIC3_OUTPUT_DIR
         value: /app/data
+      # No persistent disk on free tier: model re-downloads from HuggingFace
+      # on each cold start (ephemeral container storage).
       - key: HF_HOME
         value: /app/.hf-cache
-    disk:
-      name: tts-cache
-      mountPath: /app/.hf-cache
-      sizeGB: 2          # persist downloaded model across restarts
+    # NOTE: free tier has no disk + 512MB RAM. If synthesis OOMs, the only fix
+    # is a paid plan (starter $7 / standard $25 with 2GB). Add a disk block then.
