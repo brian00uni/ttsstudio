@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleUrl, synthesize } from "../lib/tts";
 
@@ -45,6 +46,7 @@ export default function Studio() {
   const [maxChunk, setMaxChunk] = useState("");      // "" = auto
   const [silence, setSilence] = useState(0.3);
   const [busy, setBusy] = useState(false);
+  const [lottie, setLottie] = useState("idle"); // idle | loading | success
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState("");
   const [samples, setSamples] = useState([]);
@@ -223,7 +225,7 @@ export default function Studio() {
 
   async function generate() {
     if (!text.trim()) { setStatus("텍스트를 입력하세요."); return; }
-    setBusy(true); setStatus("음성 생성 중… (처음엔 서버 깨우는 데 시간이 걸릴 수 있어요)"); setResult(null);
+    setBusy(true); setLottie("loading"); setStatus("음성 생성 중… (처음엔 서버 깨우는 데 시간이 걸릴 수 있어요)"); setResult(null);
     const payload = {
       text: text.trim(),
       voice,
@@ -242,8 +244,11 @@ export default function Studio() {
         try { await saveGeneration(user.id, payload, res); setStatus("내 라이브러리에 저장됨 ✓"); }
         catch (e) { setStatus("생성 완료 (저장 실패: " + (e.message || e) + ")"); }
       }
+      setLottie("success");
+      setTimeout(() => setLottie("idle"), 1800);
     } catch (e) {
       setStatus("생성 실패: " + (e.message || e));
+      setLottie("idle");
     } finally {
       setBusy(false);
     }
@@ -255,6 +260,22 @@ export default function Studio() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      {/* TTS 생성 로딩/완료 Lottie 오버레이 */}
+      {lottie !== "idle" && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40">
+          <DotLottieReact
+            key={lottie}
+            src={lottie === "loading" ? "/lottie/tts-progress.lottie" : "/lottie/tts-success.lottie"}
+            autoplay
+            loop={lottie === "loading"}
+            style={{ width: 220, height: 220 }}
+          />
+          <p className="mt-2 text-sm font-medium text-white">
+            {lottie === "loading" ? "음성 생성 중…" : "완료!"}
+          </p>
+        </div>
+      )}
+
       {/* 공용 계정 안내 모달 */}
       {showShareNotice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
@@ -366,8 +387,8 @@ export default function Studio() {
         />
         <div className="mt-1 text-right text-xs text-slate-400">{text.length}자</div>
 
-        <button onClick={generate} disabled={busy}
-          className="mt-3 w-full rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+        <button onClick={generate} disabled={busy || !text.trim()}
+          className="mt-3 w-full rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
           {busy ? "생성 중…" : "음성 생성"}
         </button>
         {status && <p className="mt-2 text-xs text-slate-500">{status}</p>}
