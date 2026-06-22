@@ -1,10 +1,20 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { VOICES, sampleUrl, synthesize } from "../lib/tts";
 import { saveGeneration } from "../lib/library";
 
 export default function Studio() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isSharedUser = profile?.username === "user" || user?.email === "user@ttsstudio.app";
+  const [showShareNotice, setShowShareNotice] = useState(false);
+
+  // Notify shared-account users (once per session) that the library is shared.
+  useEffect(() => {
+    if (isSharedUser && !sessionStorage.getItem("tts_share_notice")) {
+      setShowShareNotice(true);
+      sessionStorage.setItem("tts_share_notice", "1");
+    }
+  }, [isSharedUser]);
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("F1");
   const [speed, setSpeed] = useState(1.05);
@@ -44,6 +54,26 @@ export default function Studio() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      {/* 공용 계정 안내 모달 */}
+      {showShareNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <div className="text-center text-3xl">👥</div>
+            <h3 className="mt-3 text-center text-lg font-bold">공용 계정 안내</h3>
+            <p className="mt-3 text-center text-sm leading-relaxed text-slate-600">
+              공용 계정은 라이브러리가 공유됩니다.<br />
+              개인별 저장이 필요하시면 회원가입하시면 됩니다.
+            </p>
+            <button
+              onClick={() => setShowShareNotice(false)}
+              className="mt-5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 타이틀 영역 */}
       <div className="rounded-2xl bg-gradient-to-r from-teal-500 to-indigo-600 p-8 text-center text-white shadow">
         <h1 className="text-2xl font-bold">AI 음성으로 콘텐츠를 만들어 보세요</h1>
