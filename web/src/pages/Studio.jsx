@@ -1,6 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
-import { VOICES, LANGS, sampleUrl, synthesize } from "../lib/tts";
+import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleUrl, synthesize } from "../lib/tts";
+
+// A <select> whose options are presets; falls back to a "프리셋 외 값(custom)"
+// option when the current value isn't one of the presets.
+function PresetSelect({ label, value, options, onChange }) {
+  const v = String(value);
+  const known = options.some(([val]) => val === v);
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
+      <select value={known ? v : "__custom__"}
+        onChange={(e) => { if (e.target.value !== "__custom__") onChange(e.target.value); }}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+        {options.map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
+        {!known && <option value="__custom__">프리셋 외 값(custom): {v || "자동"}</option>}
+      </select>
+    </div>
+  );
+}
 import { saveGeneration } from "../lib/library";
 
 const TABS = [
@@ -33,7 +51,8 @@ export default function Studio() {
   const [sampleId, setSampleId] = useState("");
   // 사용자 설정 (presets)
   const [slot, setSlot] = useState("1");
-  const [presetMsg, setPresetMsg] = useState("");
+  const [slotStatus, setSlotStatus] = useState("");
+  const [playing, setPlaying] = useState(false);
   const sampleRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -49,30 +68,40 @@ export default function Studio() {
     setMaxChunk(s.max_chunk_length ?? "");
     if (s.silence_duration != null) setSilence(Number(s.silence_duration));
   }
+  // Status line for a slot: "저장됨 {date}" or "비어 있음".
+  function statusFor(s) {
+    const raw = localStorage.getItem(PRESET_PREFIX + s);
+    if (!raw) return `설정 ${s}: 비어 있음`;
+    try {
+      const at = JSON.parse(raw).saved_at;
+      return `설정 ${s}: 저장됨 ${at ? new Date(at).toLocaleString("ko-KR") : ""}`;
+    } catch { return `설정 ${s}: 저장됨`; }
+  }
   function savePreset() {
-    localStorage.setItem(PRESET_PREFIX + slot, JSON.stringify(currentSettings()));
+    localStorage.setItem(PRESET_PREFIX + slot, JSON.stringify({ saved_at: new Date().toISOString(), settings: currentSettings() }));
     localStorage.setItem(PRESET_LAST, slot);
-    setPresetMsg(`설정 ${slot} 저장됨`);
+    setSlotStatus(statusFor(slot));
   }
   function loadPreset() {
     const raw = localStorage.getItem(PRESET_PREFIX + slot);
-    if (!raw) { setPresetMsg(`설정 ${slot}: 비어 있음`); return; }
-    applySettings(JSON.parse(raw));
+    if (!raw) { setSlotStatus(`설정 ${slot}: 비어 있음`); return; }
+    applySettings(JSON.parse(raw).settings);
     localStorage.setItem(PRESET_LAST, slot);
-    setPresetMsg(`설정 ${slot} 불러옴`);
+    setSlotStatus(`설정 ${slot} 불러옴`);
   }
   function clearPreset() {
     localStorage.removeItem(PRESET_PREFIX + slot);
-    setPresetMsg(`설정 ${slot} 삭제됨`);
+    setSlotStatus(`설정 ${slot}: 비어 있음`);
   }
+
+  // Show the selected slot's saved status whenever the slot changes.
+  useEffect(() => { setSlotStatus(statusFor(slot)); }, [slot]);
 
   // Auto-load the last used preset on entry.
   useEffect(() => {
     const last = localStorage.getItem(PRESET_LAST);
-    if (last) {
-      const raw = localStorage.getItem(PRESET_PREFIX + last);
-      if (raw) { setSlot(last); applySettings(JSON.parse(raw)); setPresetMsg(`설정 ${last} 자동 불러옴`); }
-    }
+    const raw = last && localStorage.getItem(PRESET_PREFIX + last);
+    if (raw) { setSlot(last); applySettings(JSON.parse(raw).settings); }
   }, []);
 
   useEffect(() => {
@@ -90,12 +119,15 @@ export default function Studio() {
       .catch(() => setSamples([]));
   }, []);
 
-  function playSample() {
+  function toggleSample() {
     const a = sampleRef.current;
     if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); return; }
     a.src = sampleUrl(voice);
-    a.play().catch(() => setStatus("샘플을 재생할 수 없습니다."));
+    a.play().then(() => setPlaying(true)).catch(() => setStatus("샘플을 재생할 수 없습니다."));
   }
+  // Stop playback if the voice changes mid-play.
+  useEffect(() => { const a = sampleRef.current; if (a) { a.pause(); setPlaying(false); } }, [voice]);
 
   function onFile(e) {
     const file = e.target.files?.[0];
@@ -106,19 +138,30 @@ export default function Studio() {
     reader.readAsText(file, "utf-8");
   }
 
-  function onPickSample(e) {
+  async function onPickSample(e) {
     const id = e.target.value;
     setSampleId(id);
     const s = samples.find((x) => x.id === id);
-    if (s) {
-      setText(s.text || "");
-      if (s.voice && VOICES.some((v) => v.id === s.voice)) setVoice(s.voice);
-      if (s.lang) setLang(s.lang);
-      if (s.speed) setSpeed(Number(s.speed));
-      if (s.total_step != null) setTotalStep(Number(s.total_step));
-      if (s.max_chunk_length != null) setMaxChunk(s.max_chunk_length);
-      if (s.silence_duration != null) setSilence(Number(s.silence_duration));
+    if (!s) return;
+    if (s.voice && VOICES.some((v) => v.id === s.voice)) setVoice(s.voice);
+    if (s.lang) setLang(s.lang);
+    if (s.speed) setSpeed(Number(s.speed));
+    if (s.total_step != null) setTotalStep(Number(s.total_step));
+    if (s.max_chunk_length != null) setMaxChunk(s.max_chunk_length);
+    if (s.silence_duration != null) setSilence(Number(s.silence_duration));
+    // Some samples store text inline; others reference an external .txt (text_url).
+    if (s.text) {
+      setText(s.text);
       setStatus(`'${s.title}' 대본 불러옴`);
+    } else if (s.text_url) {
+      setStatus(`'${s.title}' 대본 불러오는 중…`);
+      try {
+        const t = await (await fetch(s.text_url, { cache: "no-store" })).text();
+        setText(t);
+        setStatus(`'${s.title}' 대본 불러옴`);
+      } catch {
+        setStatus("대본 파일을 불러올 수 없습니다.");
+      }
     }
   }
 
@@ -260,21 +303,22 @@ export default function Studio() {
 
       {/* 설정값 */}
       <section className="rounded-2xl bg-white p-5 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">설정</h2>
-          {/* 사용자 설정 (프리셋) */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-400">사용자 설정</span>
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">설정</h2>
+
+        {/* 사용자 설정 (프리셋) */}
+        <div className="mb-4 rounded-xl bg-slate-50 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">사용자 설정(Custom)</span>
             <select value={slot} onChange={(e) => setSlot(e.target.value)}
-              className="rounded-md border border-slate-300 px-2 py-1 text-xs outline-none">
-              {PRESET_SLOTS.map((s) => <option key={s} value={s}>설정 {s}</option>)}
+              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs outline-none">
+              {PRESET_SLOTS.map((s) => <option key={s} value={s}>설정 {s} (Custom {s})</option>)}
             </select>
-            <button onClick={savePreset} className="rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700">저장</button>
-            <button onClick={loadPreset} className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">불러오기</button>
-            <button onClick={clearPreset} className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">삭제</button>
+            <button onClick={loadPreset} className="rounded-md bg-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300">불러오기</button>
+            <button onClick={savePreset} className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700">저장</button>
+            <button onClick={clearPreset} className="rounded-md bg-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300">삭제</button>
           </div>
+          <p className="mt-2 text-xs text-slate-400">{slotStatus}</p>
         </div>
-        {presetMsg && <p className="mb-3 text-right text-xs text-slate-400">{presetMsg}</p>}
 
         <div className="grid gap-4 sm:grid-cols-2">
           {/* 목소리 */}
@@ -294,10 +338,10 @@ export default function Studio() {
                   ))}
                 </optgroup>
               </select>
-              <button onClick={playSample}
-                className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200"
-                title="샘플 듣기">
-                ▶ 샘플
+              <button onClick={toggleSample}
+                className={`rounded-lg px-3 py-2 text-sm font-medium ${playing ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                title={playing ? "정지" : "샘플 듣기"}>
+                {playing ? "⏹ 정지" : "▶ 샘플"}
               </button>
             </div>
           </div>
@@ -311,38 +355,12 @@ export default function Studio() {
             </select>
           </div>
 
-          {/* 속도 */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">속도 ({speed.toFixed(2)}x)</label>
-            <input type="range" min="0.7" max="2.0" step="0.05" value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))} className="mt-2 w-full" />
-          </div>
-
-          {/* 단계 */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">단계 (Steps, 1~100)</label>
-            <input type="number" min="1" max="100" step="1" value={totalStep}
-              onChange={(e) => setTotalStep(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
-          </div>
-
-          {/* 최대 청크 */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">최대 청크 (비우면 자동)</label>
-            <input type="number" min="10" max="100000" step="10" value={maxChunk}
-              placeholder="자동" onChange={(e) => setMaxChunk(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
-          </div>
-
-          {/* 청크 무음 */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">청크 무음 (초, 0~30)</label>
-            <input type="number" min="0" max="30" step="0.05" value={silence}
-              onChange={(e) => setSilence(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
-          </div>
+          <PresetSelect label="속도 선택(Speed)" value={speed} options={SPEED_OPTS} onChange={(v) => setSpeed(Number(v))} />
+          <PresetSelect label="단계 선택(Steps)" value={totalStep} options={STEP_OPTS} onChange={(v) => setTotalStep(Number(v))} />
+          <PresetSelect label="청크 선택(Chunk)" value={maxChunk} options={CHUNK_OPTS} onChange={(v) => setMaxChunk(v)} />
+          <PresetSelect label="무음 선택(Silence)" value={silence} options={SILENCE_OPTS} onChange={(v) => setSilence(Number(v))} />
         </div>
-        <audio ref={sampleRef} className="hidden" />
+        <audio ref={sampleRef} onEnded={() => setPlaying(false)} className="hidden" />
       </section>
     </div>
   );

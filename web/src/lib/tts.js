@@ -43,6 +43,27 @@ export function sampleUrl(voice) {
   return `/public/voice-samples/${voice}.wav`;
 }
 
+// Preset dropdown options (value, label) mirrored from the legacy UI.
+export const SPEED_OPTS = [
+  ["0.8", "0.80 - 느림(slow)"], ["0.9", "0.90 - 안정적(steady)"], ["1", "1.00 - 보통(normal)"],
+  ["1.05", "1.05 - 기본(default)"], ["1.15", "1.15 - 경쾌함(brisk)"], ["1.25", "1.25 - 빠름(fast)"],
+  ["1.5", "1.50 - 매우 빠름(very fast)"], ["2", "2.00 - 최대(max)"],
+];
+export const STEP_OPTS = [
+  ["1", "1 - 초안(draft)"], ["4", "4 - 빠름(quick)"], ["8", "8 - 기본(default)"],
+  ["10", "10 - 품질(quality)"], ["12", "12 - 고품질(high)"], ["20", "20 - 느림(slow)"],
+  ["50", "50 - 극단(extreme)"], ["100", "100 - 최대(max)"],
+];
+export const CHUNK_OPTS = [
+  ["", "자동(auto)"], ["80", "80 - 짧음(short)"], ["120", "120 - 한국어/일본어(ko/ja)"],
+  ["200", "200 - 촘촘함(tight)"], ["300", "300 - 기본(default)"], ["500", "500 - 김(long)"],
+  ["1000", "1000 - 매우 김(very long)"],
+];
+export const SILENCE_OPTS = [
+  ["0", "0.00s - 없음(none)"], ["0.1", "0.10s - 촘촘함(tight)"], ["0.2", "0.20s - 짧음(short)"],
+  ["0.3", "0.30s - 기본(default)"], ["0.5", "0.50s - 명확함(clear)"], ["1", "1.00s - 멈춤(pause)"],
+];
+
 async function readJson(res) {
   let data = {};
   try { data = await res.json(); } catch { /* ignore */ }
