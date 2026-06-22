@@ -1,16 +1,22 @@
-# Supertonic3 TTS backend — production container (Render/Railway/Fly.io)
+# Supertonic3 TTS backend — production container.
+# Works on Hugging Face Spaces (Docker SDK, port 7860, runs as uid 1000)
+# and on Render/Railway (which inject $PORT).
 FROM python:3.12-slim
 
-# ffmpeg is needed for MP3 conversion; build tools for any native wheels
+# ffmpeg is needed for MP3 conversion
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+# Non-root user (Hugging Face Spaces runs containers as uid 1000)
+RUN useradd -m -u 1000 user
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    HF_HOME=/app/.hf-cache \
-    SUPERTONIC3_OUTPUT_DIR=/app/data
+    HF_HOME=/home/user/.cache/huggingface \
+    SUPERTONIC3_OUTPUT_DIR=/home/user/data \
+    SUPERTONIC3_PUBLIC_MODE=1
 
 WORKDIR /app
 
@@ -25,16 +31,17 @@ COPY src ./src
 COPY ui ./ui
 COPY public ./public
 
-RUN mkdir -p /app/data /app/.hf-cache
+# Writable dirs owned by the runtime user
+RUN mkdir -p /home/user/data /home/user/.cache/huggingface \
+    && chown -R user /home/user
 
-# Render/Railway inject $PORT. Default to 3093 for local docker runs.
-ENV PORT=3093
-EXPOSE 3093
+USER user
 
-# Public deployment guards (rate limits, size caps) on by default for the hosted backend.
-ENV SUPERTONIC3_PUBLIC_MODE=1
+# HF Spaces expects port 7860 (set via app_port in README). Render injects $PORT.
+ENV PORT=7860
+EXPOSE 7860
 
 WORKDIR /app/src
-# Single worker: the ONNX engine is cached per-process and synthesis holds a lock.
-# Long timeout because first request downloads the model and synthesis is CPU-bound.
-CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 600"]
+# Single worker: ONNX engine is cached per-process and synthesis holds a lock.
+# Long timeout: first request downloads the model; synthesis is CPU-bound.
+CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 4 --timeout 600"]
