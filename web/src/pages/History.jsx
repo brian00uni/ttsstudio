@@ -66,7 +66,7 @@ export default function History() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">TTS 생성 내역</h1>
         <button onClick={() => load(page)} title="새로고침"
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             className={loading ? "animate-spin" : ""}>
@@ -140,7 +140,7 @@ export default function History() {
             className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40">‹</button>
           {Array.from({ length: totalPages }, (_, i) => (
             <button key={i} onClick={() => setPage(i)}
-              className={`min-w-8 rounded-lg px-3 py-1.5 text-sm ${i === page ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+              className={`min-w-8 rounded-lg px-3 py-1.5 text-sm ${i === page ? "bg-brand-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
               {i + 1}
             </button>
           ))}

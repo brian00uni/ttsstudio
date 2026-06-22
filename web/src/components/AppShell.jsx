@@ -8,7 +8,7 @@ function NavItem({ to, label, icon }) {
       to={to}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-          isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100"
+          isActive ? "bg-brand-50 text-brand-700" : "text-slate-600 hover:bg-slate-100"
         }`
       }
     >
@@ -55,7 +55,7 @@ function ProfileMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left hover:bg-slate-50"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
           {initial}
         </span>
         <span className="min-w-0 flex-1">

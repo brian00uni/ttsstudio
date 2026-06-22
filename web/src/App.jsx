@@ -24,7 +24,7 @@ function WithdrawnNotice() {
         <div className="text-3xl">🚪</div>
         <h2 className="mt-3 text-lg font-bold">탈퇴한 계정입니다</h2>
         <p className="mt-2 text-sm text-slate-500">이 계정은 탈퇴 처리되어 이용할 수 없습니다.</p>
-        <button onClick={signOut} className="mt-5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+        <button onClick={signOut} className="mt-5 w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
           로그아웃
         </button>
       </div>

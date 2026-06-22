@@ -63,7 +63,7 @@ export default function Login() {
         </div>
         <form onSubmit={submit} className="space-y-3">
           <input
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500"
             placeholder={mode === "login" && !idFocused ? DEFAULT_ID : "아이디 또는 이메일"}
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
@@ -72,7 +72,7 @@ export default function Login() {
           />
           <input
             type="password"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500"
             placeholder={mode === "login" && !pwFocused ? DEFAULT_PW : "비밀번호"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -81,7 +81,7 @@ export default function Login() {
           />
           <button
             disabled={busy}
-            className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
           >
             {busy ? "처리 중…" : mode === "login" ? "로그인" : "회원가입"}
           </button>
@@ -96,11 +96,11 @@ export default function Login() {
         )}
         <div className="mt-5 text-center text-xs text-slate-500">
           {mode === "login" ? (
-            <button onClick={() => { setMode("signup"); setMsg(""); }} className="font-semibold text-indigo-600">
+            <button onClick={() => { setMode("signup"); setMsg(""); }} className="font-semibold text-brand-600">
               계정이 없나요? 회원가입
             </button>
           ) : (
-            <button onClick={() => { setMode("login"); setMsg(""); }} className="font-semibold text-indigo-600">
+            <button onClick={() => { setMode("login"); setMsg(""); }} className="font-semibold text-brand-600">
               이미 계정이 있나요? 로그인
             </button>
           )}

@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Brand color system — Primary #972AAF (from the color palette spec). */
+@theme {
+  --color-brand-50: #faeffc;
+  --color-brand-100: #f0d7f4;
+  --color-brand-200: #dfaee8;
+  --color-brand-300: #c97fd7;
+  --color-brand-400: #b14fc4;
+  --color-brand-500: #972aaf;
+  --color-brand-600: #8323a0;
+  --color-brand-700: #6f1c84;
+  --color-brand-800: #551466;
+  --color-brand-900: #3b0a48;
+}
+
 :root {
   font-family: "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
 }

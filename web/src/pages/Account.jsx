@@ -109,12 +109,12 @@ export default function Account() {
             <form onSubmit={changePassword} className="space-y-3">
               <input type="password" placeholder="새 비밀번호 (6자 이상)" value={pw}
                 onChange={(e) => setPw(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500" />
+                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500" />
               <input type="password" placeholder="새 비밀번호 확인" value={pw2}
                 onChange={(e) => setPw2(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500" />
+                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500" />
               <button disabled={busy}
-                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
                 {busy ? "변경 중…" : "비밀번호 변경"}
               </button>
             </form>

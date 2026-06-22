@@ -13,7 +13,7 @@ function PresetSelect({ label, value, options, onChange }) {
       <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
       <select value={known ? v : "__custom__"}
         onChange={(e) => { if (e.target.value !== "__custom__") onChange(e.target.value); }}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
         {options.map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
         {!known && <option value="__custom__">프리셋 외 값(custom): {v || "자동"}</option>}
       </select>
@@ -287,7 +287,7 @@ export default function Studio() {
               개인별 저장이 필요하시면 회원가입하시면 됩니다.
             </p>
             <button onClick={() => setShowShareNotice(false)}
-              className="mt-5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+              className="mt-5 w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
               확인
             </button>
           </div>
@@ -295,7 +295,7 @@ export default function Studio() {
       )}
 
       {/* 타이틀 영역 */}
-      <div className="rounded-2xl bg-gradient-to-r from-teal-500 to-indigo-600 p-8 text-center text-white shadow">
+      <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-800 p-8 text-center text-white shadow">
         <h1 className="text-2xl font-bold">AI 음성으로 콘텐츠를 만들어 보세요</h1>
       </div>
 
@@ -308,7 +308,7 @@ export default function Studio() {
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                tab === t.id ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                tab === t.id ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}>
               {t.label}
             </button>
@@ -319,7 +319,7 @@ export default function Studio() {
         {tab === "file" && (
           <div className="mb-3 rounded-lg border border-dashed border-slate-300 p-3 text-sm">
             <input ref={fileRef} type="file" accept=".txt,text/plain" onChange={onFile}
-              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100" />
+              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100" />
             <p className="mt-1 text-xs text-slate-400">컴퓨터의 .txt 파일을 선택하면 아래 입력칸에 불러옵니다.</p>
           </div>
         )}
@@ -331,15 +331,15 @@ export default function Studio() {
               <div className="grid gap-2 sm:grid-cols-2">
                 <input value={req.topic} onChange={(e) => setReq({ ...req, topic: e.target.value })}
                   placeholder="대본 요청 주제 (예: 30대 직장인을 위한 5분 위로 낭독문)"
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 sm:col-span-2" />
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 sm:col-span-2" />
                 <select value={req.tone} onChange={(e) => setReq({ ...req, tone: e.target.value })}
                   className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none">
                   {["차분함", "따뜻함", "정보형", "몰입형", "유쾌함"].map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
                 <input value={req.length} onChange={(e) => setReq({ ...req, length: e.target.value })}
-                  placeholder="분량 (예: 3분)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+                  placeholder="분량 (예: 3분)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                 <input value={req.audience} onChange={(e) => setReq({ ...req, audience: e.target.value })}
-                  placeholder="대상 (예: 일반 청취자)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+                  placeholder="대상 (예: 일반 청취자)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500" />
                 <select value={req.expression_tag_mode} onChange={(e) => setReq({ ...req, expression_tag_mode: e.target.value })}
                   className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none">
                   <option value="none">표현 태그 없음(None)</option>
@@ -347,7 +347,7 @@ export default function Studio() {
                 </select>
                 <input value={req.notes} onChange={(e) => setReq({ ...req, notes: e.target.value })}
                   placeholder="추가 요청 (포함 키워드, 금지 표현, 분위기 등)"
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 sm:col-span-2" />
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 sm:col-span-2" />
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <button onClick={submitRequest} disabled={reqBusy}
@@ -363,7 +363,7 @@ export default function Studio() {
               <div className="mb-1 text-xs font-semibold text-slate-600">샘플 대본(Sample script)</div>
               <div className="flex gap-2">
                 <select value={sampleId} onChange={onPickSample}
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
                   <option value="">샘플 대본을 선택하세요…</option>
                   {samples.map((s) => (
                     <option key={s.id} value={s.id}>{s.title}</option>
@@ -383,12 +383,12 @@ export default function Studio() {
           onChange={(e) => setText(e.target.value)}
           rows={6}
           placeholder={tab === "manual" ? "읽어줄 텍스트를 입력하세요." : "위에서 불러온 내용이 여기에 표시됩니다. 수정도 가능합니다."}
-          className="w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-indigo-500"
+          className="w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-brand-500"
         />
         <div className="mt-1 text-right text-xs text-slate-400">{text.length}자</div>
 
         <button onClick={generate} disabled={busy || !text.trim()}
-          className="mt-3 w-full rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
+          className="mt-3 w-full rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
           {busy ? "생성 중…" : "음성 생성"}
         </button>
         {status && <p className="mt-2 text-xs text-slate-500">{status}</p>}
@@ -434,7 +434,7 @@ export default function Studio() {
               {PRESET_SLOTS.map((s) => <option key={s} value={s}>{slotLabel(s)}</option>)}
             </select>
             <button onClick={loadPreset} className="rounded-md bg-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300">불러오기</button>
-            <button onClick={savePreset} className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700">저장</button>
+            <button onClick={savePreset} className="rounded-md bg-brand-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-brand-700">저장</button>
             <button onClick={clearPreset} className="rounded-md bg-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300">삭제</button>
           </div>
           <p className="mt-2 text-xs text-slate-400">{slotStatus}</p>
@@ -446,7 +446,7 @@ export default function Studio() {
             <label className="mb-1 block text-xs font-medium text-slate-500">목소리</label>
             <div className="flex gap-2">
               <select value={voice} onChange={(e) => setVoice(e.target.value)}
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
                 <optgroup label="남성">
                   {VOICES.filter((v) => v.id.startsWith("M")).map((v) => (
                     <option key={v.id} value={v.id}>{v.label}</option>
@@ -470,7 +470,7 @@ export default function Studio() {
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500">언어</label>
             <select value={lang} onChange={(e) => setLang(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
               {LANGS.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
             </select>
           </div>

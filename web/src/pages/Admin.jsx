@@ -86,7 +86,7 @@ export default function Admin() {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium">{r.username || "-"}{r.is_admin && <span className="ml-1 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-600">관리자</span>}</td>
+                    <td className="px-4 py-3 font-medium">{r.username || "-"}{r.is_admin && <span className="ml-1 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] text-brand-600">관리자</span>}</td>
                     <td className="px-4 py-3 text-slate-500">{r.email}</td>
                     <td className="px-4 py-3 text-slate-500">{fmtDate(r.created_at)}</td>
                     <td className="px-4 py-3 text-slate-500">{fmtDate(r.last_login)}</td>
