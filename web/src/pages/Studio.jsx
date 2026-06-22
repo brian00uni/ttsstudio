@@ -51,6 +51,7 @@ export default function Studio() {
 
   const audioUrl = result?.mp3_url || result?.audio_url;
   const wavUrl = result?.wav_url;
+  const srtUrl = result?.srt_url;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
@@ -153,6 +154,11 @@ export default function Studio() {
               {wavUrl && (
                 <a href={wavUrl} download className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
                   WAV 다운로드
+                </a>
+              )}
+              {srtUrl && (
+                <a href={srtUrl} download className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+                  자막(SRT)
                 </a>
               )}
             </div>
