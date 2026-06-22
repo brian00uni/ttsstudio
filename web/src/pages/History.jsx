@@ -6,11 +6,11 @@ const PAGE_SIZE = 20;
 function fmtDate(s) {
   if (!s) return "-";
   const d = new Date(s);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
-function fmtTime(s) {
-  if (!s) return "-";
-  return new Date(s).toLocaleTimeString("ko-KR", { hour12: false });
+function fmtDuration(sec) {
+  return sec != null ? `${Number(sec).toFixed(1)}초` : "-";
 }
 function truncate(t) {
   const s = t || "";
@@ -100,7 +100,7 @@ export default function History() {
                   <tr key={r.id} className="border-t border-slate-50 hover:bg-slate-50">
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDate(r.created_at)}</td>
                     <td className="px-4 py-3" title={r.text}>{truncate(r.text)}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtTime(r.created_at)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDuration(r.duration)}</td>
                     <td className="px-4 py-3 text-center">
                       {audioUrls[r.id] ? (
                         <a href={audioUrls[r.id]} download title="오디오 다운로드"
