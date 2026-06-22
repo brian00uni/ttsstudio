@@ -1,23 +1,31 @@
 // TTS API client — talks to the HF Space backend via same-origin /api proxy
 // (Vercel rewrites in prod, Vite proxy in dev).
 
-// Friendly Korean persona names with a face icon per voice id.
+// Friendly Korean persona names with a per-voice avatar image.
 export const VOICES = [
-  { id: "M1", name: "민호", icon: "👨" },
-  { id: "M2", name: "경식", icon: "👨" },
-  { id: "M3", name: "영수", icon: "👨" },
-  { id: "M4", name: "상철", icon: "👨" },
-  { id: "M5", name: "동훈", icon: "👨" },
-  { id: "F1", name: "영숙", icon: "👩" },
-  { id: "F2", name: "옥순", icon: "👩" },
-  { id: "F3", name: "영자", icon: "👩" },
-  { id: "F4", name: "미숙", icon: "👩" },
-  { id: "F5", name: "정희", icon: "👩" },
+  { id: "M1", name: "민호", icon: "👨", img: "/voices/ico-m-01.png" },
+  { id: "M2", name: "경식", icon: "👨", img: "/voices/ico-m-02.png" },
+  { id: "M3", name: "영수", icon: "👨", img: "/voices/ico-m-03.png" },
+  { id: "M4", name: "상철", icon: "👨", img: "/voices/ico-m-04.png" },
+  { id: "M5", name: "동훈", icon: "👨", img: "/voices/ico-m-05.png" },
+  { id: "F1", name: "영숙", icon: "👩", img: "/voices/ico-w-01.png" },
+  { id: "F2", name: "옥순", icon: "👩", img: "/voices/ico-w-02.png" },
+  { id: "F3", name: "영자", icon: "👩", img: "/voices/ico-w-03.png" },
+  { id: "F4", name: "미숙", icon: "👩", img: "/voices/ico-w-04.png" },
+  { id: "F5", name: "정희", icon: "👩", img: "/voices/ico-w-05.png" },
 ].map((v) => ({ ...v, label: `${v.icon} ${v.name}` }));
 
 export function voiceLabel(id) {
   const v = VOICES.find((x) => x.id === id);
   return v ? v.label : id;
+}
+export function voiceName(id) {
+  const v = VOICES.find((x) => x.id === id);
+  return v ? v.name : id;
+}
+export function voiceImg(id) {
+  const v = VOICES.find((x) => x.id === id);
+  return v ? v.img : null;
 }
 
 // Languages supported by the backend (subset of the engine list, common first).

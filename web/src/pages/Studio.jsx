@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "../lib/AuthContext.jsx";
-import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleUrl, synthesize } from "../lib/tts";
+import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleUrl, synthesize, voiceImg, voiceName } from "../lib/tts";
 
 // A <select> whose options are presets; falls back to a "프리셋 외 값(custom)"
 // option when the current value isn't one of the presets.
@@ -301,7 +301,11 @@ export default function Studio() {
 
       {/* 입력 영역 - 생성 */}
       <section className="rounded-2xl bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">입력</h2>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <img src={voiceImg(voice)} alt={voiceName(voice)} className="h-9 w-9 rounded-full object-cover ring-1 ring-slate-200" />
+          <span className="text-sm font-semibold text-slate-800">{voiceName(voice)}</span>
+          <span className="text-xs text-slate-400">{summarize(currentSettings())}</span>
+        </div>
 
         {/* 입력 방식 탭 */}
         <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-1">
@@ -444,7 +448,8 @@ export default function Studio() {
           {/* 목소리 */}
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500">목소리</label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <img src={voiceImg(voice)} alt={voiceName(voice)} className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
               <select value={voice} onChange={(e) => setVoice(e.target.value)}
                 className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
                 <optgroup label="남성">
