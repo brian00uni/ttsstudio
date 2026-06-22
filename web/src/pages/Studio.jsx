@@ -358,7 +358,7 @@ export default function Studio() {
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <button onClick={submitRequest} disabled={reqBusy}
-                  className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-60">
+                  className="rounded-lg bg-secondary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-secondary-700 disabled:opacity-60">
                   대본 요청 저장
                 </button>
                 <span className="text-xs text-slate-400">{reqMsg || "AI에게 넘길 요청 파일을 저장합니다."}</span>
@@ -408,7 +408,7 @@ export default function Studio() {
           <div className="space-y-3">
             <audio controls src={audioUrl} className="w-full" />
             <div className="flex flex-wrap gap-2">
-              <a href={audioUrl} download className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+              <a href={audioUrl} download className="rounded-lg bg-secondary-600 px-4 py-2 text-sm font-medium text-white hover:bg-secondary-700">
                 MP3 다운로드
               </a>
               {wavUrl && (

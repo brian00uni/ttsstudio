@@ -1,17 +1,28 @@
 @import "tailwindcss";
 
-/* Brand color system — Primary #972AAF (from the color palette spec). */
+/* Brand color system — Primary #d97706 (amber), Secondary #4b5563 (gray). */
 @theme {
-  --color-brand-50: #faeffc;
-  --color-brand-100: #f0d7f4;
-  --color-brand-200: #dfaee8;
-  --color-brand-300: #c97fd7;
-  --color-brand-400: #b14fc4;
-  --color-brand-500: #972aaf;
-  --color-brand-600: #8323a0;
-  --color-brand-700: #6f1c84;
-  --color-brand-800: #551466;
-  --color-brand-900: #3b0a48;
+  --color-brand-50: #fffbeb;
+  --color-brand-100: #fef3c7;
+  --color-brand-200: #fde68a;
+  --color-brand-300: #fcd34d;
+  --color-brand-400: #fbbf24;
+  --color-brand-500: #f59e0b;
+  --color-brand-600: #d97706;
+  --color-brand-700: #b45309;
+  --color-brand-800: #92400e;
+  --color-brand-900: #78350f;
+
+  --color-secondary-50: #f9fafb;
+  --color-secondary-100: #f3f4f6;
+  --color-secondary-200: #e5e7eb;
+  --color-secondary-300: #d1d5db;
+  --color-secondary-400: #9ca3af;
+  --color-secondary-500: #6b7280;
+  --color-secondary-600: #4b5563;
+  --color-secondary-700: #374151;
+  --color-secondary-800: #1f2937;
+  --color-secondary-900: #111827;
 }
 
 :root {

@@ -182,7 +182,7 @@ export default function History() {
             <div className="flex flex-wrap gap-2 border-t border-slate-100 p-4">
               {audioUrls[selected.id] && (
                 <a href={audioUrls[selected.id]} download
-                  className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                  className="rounded-lg bg-secondary-600 px-4 py-2 text-sm font-medium text-white hover:bg-secondary-700">
                   MP3 다운로드
                 </a>
               )}
