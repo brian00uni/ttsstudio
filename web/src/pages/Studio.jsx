@@ -263,15 +263,17 @@ export default function Studio() {
     <div className="mx-auto max-w-3xl space-y-5">
       {/* TTS 생성 로딩/완료 Lottie 오버레이 */}
       {lottie !== "idle" && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40">
-          <DotLottieReact
-            key={lottie}
-            src={lottie === "loading" ? "/lottie/tts-progress.lottie" : "/lottie/tts-success.lottie"}
-            autoplay
-            loop={lottie === "loading"}
-            style={{ width: 220, height: 220 }}
-          />
-          <p className="mt-2 text-sm font-medium text-white">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/55 backdrop-blur-sm">
+          <div className="flex h-64 w-64 items-center justify-center rounded-full bg-white shadow-2xl">
+            <DotLottieReact
+              key={lottie}
+              src={lottie === "loading" ? "/lottie/tts-progress.lottie" : "/lottie/tts-success.lottie"}
+              autoplay
+              loop={lottie === "loading"}
+              style={{ width: 200, height: 200 }}
+            />
+          </div>
+          <p className="mt-4 text-sm font-medium text-white">
             {lottie === "loading" ? "음성 생성 중…" : "완료!"}
           </p>
         </div>
