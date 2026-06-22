@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext.jsx";
 
@@ -17,20 +18,63 @@ function NavItem({ to, label, icon }) {
   );
 }
 
-export default function AppShell({ children }) {
-  const { profile, user, isAdmin, signOut } = useAuth();
+function ProfileMenu() {
+  const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
-  const name = profile?.username || user?.email || "사용자";
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const name = profile?.username || user?.email?.split("@")[0] || "사용자";
+  const initial = name.charAt(0).toUpperCase();
 
-  async function handleSignOut() {
-    await signOut();
-    navigate("/login", { replace: true });
-  }
+  useEffect(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  function go(path) { setOpen(false); navigate(path); }
+  async function handleSignOut() { setOpen(false); await signOut(); navigate("/login", { replace: true }); }
+
+  return (
+    <div className="relative" ref={ref}>
+      {open && (
+        <div className="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+          <button onClick={() => go("/account")} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+            <span>👤</span> 계정관리
+          </button>
+          <button onClick={() => go("/history")} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+            <span>🗂️</span> TTS 생성 내역
+          </button>
+          <div className="border-t border-slate-100" />
+          <button onClick={handleSignOut} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+            <span>↩️</span> 로그아웃
+          </button>
+        </div>
+      )}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left hover:bg-slate-50"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+          {initial}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-slate-800">{name}</span>
+          <span className="block truncate text-xs text-slate-400">{user?.email}</span>
+        </span>
+        <span className="text-slate-400">›</span>
+      </button>
+    </div>
+  );
+}
+
+export default function AppShell({ children }) {
+  const { isAdmin } = useAuth();
 
   return (
     <div className="flex h-full">
       {/* Sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-5 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-5 md:flex">
         <div className="mb-6 flex items-center gap-2 px-2">
           <span className="text-xl">🎙️</span>
           <span className="text-lg font-bold tracking-tight">ttsstudio</span>
@@ -38,19 +82,18 @@ export default function AppShell({ children }) {
         <nav className="flex flex-col gap-1">
           {isAdmin && <NavItem to="/admin" label="관리자 대시보드" icon="📊" />}
           <NavItem to="/studio" label="음성 생성" icon="🔊" />
-          <NavItem to="/settings" label="설정" icon="⚙️" />
+          <NavItem to="/history" label="TTS 생성 내역" icon="🗂️" />
         </nav>
-        <div className="mt-auto px-2 pt-4 text-xs text-slate-400">
-          {isAdmin ? "관리자" : "일반 회원"}
+        <div className="mt-auto pt-4">
+          <ProfileMenu />
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
-          <div className="text-sm text-slate-500 md:hidden font-bold">🎙️ ttsstudio</div>
+          <div className="text-sm font-bold md:hidden">🎙️ ttsstudio</div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden text-sm text-slate-600 sm:inline">{name}</span>
             {isAdmin && (
               <a
                 href="/legacy"
@@ -61,12 +104,6 @@ export default function AppShell({ children }) {
                 구버전 화면
               </a>
             )}
-            <button
-              onClick={handleSignOut}
-              className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
-            >
-              로그아웃
-            </button>
           </div>
         </header>
         <main className="flex-1 overflow-auto p-5">{children}</main>

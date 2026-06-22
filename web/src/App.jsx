@@ -3,7 +3,8 @@ import { useAuth } from "./lib/AuthContext.jsx";
 import AppShell from "./components/AppShell.jsx";
 import Login from "./pages/Login.jsx";
 import Studio from "./pages/Studio.jsx";
-import Settings from "./pages/Settings.jsx";
+import Account from "./pages/Account.jsx";
+import History from "./pages/History.jsx";
 import Admin from "./pages/Admin.jsx";
 
 function Loading() {
@@ -46,7 +47,10 @@ export default function App() {
         }
       />
       <Route path="/studio" element={<Protected><Studio /></Protected>} />
-      <Route path="/settings" element={<Protected><Settings /></Protected>} />
+      <Route path="/account" element={<Protected><Account /></Protected>} />
+      <Route path="/history" element={<Protected><History /></Protected>} />
+      {/* legacy path */}
+      <Route path="/settings" element={<Navigate to="/account" replace />} />
       <Route path="/admin" element={<Protected adminOnly><Admin /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
