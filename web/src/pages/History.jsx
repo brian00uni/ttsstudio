@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { listGenerationsPage, signedUrl, deleteGeneration } from "../lib/library";
+import { voiceLabel } from "../lib/tts";
 
 const PAGE_SIZE = 20;
 
@@ -155,7 +156,7 @@ export default function History() {
           <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 p-4">
-              <h3 className="text-sm font-bold text-slate-800">생성 상세</h3>
+              <h3 className="text-sm font-bold text-slate-800">상세보기</h3>
               <button onClick={() => setSelected(null)}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">✕</button>
             </div>
@@ -163,7 +164,7 @@ export default function History() {
             <div className="flex-1 overflow-auto p-5">
               <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                 <span>{fmtDate(selected.created_at)}</span>
-                {selected.voice && <span>음성: {selected.voice}</span>}
+                {selected.voice && <span>음성: {voiceLabel(selected.voice)}</span>}
                 {selected.lang && <span>언어: {selected.lang}</span>}
                 <span>길이: {fmtDuration(selected.duration)}</span>
               </div>
