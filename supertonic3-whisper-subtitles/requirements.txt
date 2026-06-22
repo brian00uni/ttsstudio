@@ -1,0 +1,2 @@
+# PyPI latest verified: 2026-05-26
+faster-whisper==1.2.1

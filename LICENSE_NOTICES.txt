@@ -1,0 +1,441 @@
+Supertonic 3 Local TTS Integration
+License and copyright notices
+
+This file is a practical license and attribution notice for this local ZIP/workspace package.
+It is not legal advice. It does not replace the original licenses of Supertonic, Supertonic 3
+model assets, faster-whisper, Whisper-family models, or other dependencies.
+
+0. Public TTS API service (SaaS, no binary distribution)
+
+Service:
+https://tts.min-inter.co.kr
+
+Operating model:
+This public HTTP TTS API runs on the operator's own server (Docker container). Users receive
+generated audio files and API responses only. FFmpeg binaries, Docker images, and server
+application source code are not distributed to users or third parties.
+
+FFmpeg usage:
+FFmpeg is invoked server-side to convert synthesized WAV to MP3 (libmp3lame). FFmpeg is not
+bundled in download ZIPs for end users in this deployment path. The operator does not publish
+or convey FFmpeg binaries to API consumers.
+
+License posture for this non-distribution model:
+When FFmpeg is used only inside the operator's server and no FFmpeg binary, Docker image, or
+install package containing FFmpeg is distributed to third parties, traditional GPL/LGPL
+source-offer obligations tied to binary distribution generally do not arise for that usage.
+This summary is practical guidance, not legal advice. If distribution plans change (Docker Hub,
+on-premise delivery, client installers), review FFmpeg build flags and GPL/LGPL obligations again.
+
+Runtime FFmpeg builds in this project:
+- Docker service: Debian/Ubuntu package (apt install ffmpeg), typically LGPL-oriented distro build
+- Local Windows dev/host (optional): Gyan.FFmpeg full build (GPLv3, --enable-gpl --enable-version3)
+
+Recommended public notice (keep this page reachable):
+- Web UI: /license and /license-notices
+- Short credit: "This service uses FFmpeg (https://ffmpeg.org). FFmpeg is free software
+  licensed under the LGPL/GPL. See /license for details."
+
+Korean summary for the public service page:
+
+1) 본 서비스는 Supertonic 3 기반 전용 TTS API입니다. 공식 Supertone/SYSTRAN 제품이 아닙니다.
+2) FFmpeg는 서버 내부에서 WAV→MP3 변환에만 사용합니다. 사용자에게 FFmpeg 바이너리나 Docker
+   이미지를 제공하지 않습니다.
+3) 현재 운영 방식(배포 없는 SaaS)에서는 FFmpeg/GPL·LGPL의 배포형 소스 공개 의무가 일반적으로
+   발생하지 않는 것으로 이해할 수 있습니다. (법률 자문 아님)
+4) 생성 음성·텍스트·공개 콘텐츠 사용 책임은 API 이용자에게 있습니다.
+5) 향후 Docker 이미지·설치 패키지·온프레미스 납품 등 배포를 시작하면 이 고지와 FFmpeg 빌드
+   옵션을 다시 검토해야 합니다.
+
+6) 이 공개 API는 “테스트/검증” 용도로 제공됩니다. 본격적인 사용(반복 제작, 커스텀 워크플로,
+   내 PC에서 완전 로컬로 돌리기, 입맛에 맞게 UI/기능 수정 등)은 오픈 소스로 공개 중인 로컬 ZIP을
+   내려받아 Cursor/Codex 같은 바이브 코딩 도구로 커스터마이징해서 쓰는 방식을 권장합니다.
+   (이 서버는 공개 endpoint 제공·남용 방지·운영 안정성을 우선합니다.)
+
+로컬 ZIP 가이드(다운로드/구성/실행/주의사항):
+https://min-inter.co.kr/youtube-curator-danbi/columns/supertonic3-free-local-tts-zip-guide/
+
+Privacy settings (public SaaS, 2026-05-27):
+- SUPERTONIC3_NO_TEXT_PERSIST=1 — do not write script/srt/vtt/input_log sidecars
+- SUPERTONIC3_EPHEMERAL_AUDIO=1 — delete generated wav/mp3 and related artifacts after TTL
+- SUPERTONIC3_EPHEMERAL_TTL_SEC=3600 — default 1 hour retention for downloadable audio
+- Usage log SQLite stores statistics only (no text body, no IP)
+- Processing-time memory access cannot be eliminated on server-side TTS
+
+Public license page URLs:
+https://tts.min-inter.co.kr/license
+https://tts.min-inter.co.kr/license-notices
+
+
+1. Short notice for download pages
+
+1) This ZIP is a local integration package that uses the official Supertonic 3 ecosystem and
+faster-whisper to provide local TTS generation, subtitle files, and subtitle refinement.
+
+2) The original code, model weights, and third-party packages are governed by their own
+upstream licenses. "Free download" or "free local use" must not be read as unlimited rights.
+
+3) Users are responsible for the text, audio, subtitle files, and any other output they generate.
+Do not use this package for impersonation, non-consensual voice cloning, deceptive audio,
+harassment, unlawful content, or harmful automated generation.
+
+
+2. Korean public-content notice
+
+이 섹션은 다운로드 페이지, 블로그 칼럼, 공개 배포 안내에 붙일 수 있는 한국어 요약입니다.
+법적 자문이 아니며, 원본 라이선스 전문을 대체하지 않습니다.
+
+무료로 실행할 수 있다는 사실과 공개 콘텐츠에 자유롭게 사용할 수 있다는 사실은 별개입니다.
+개인 테스트, 발음 예제 생성, 내부 초안 검토와 유튜브 영상, 강의 교재, 서비스 안내 음성,
+광고, 판매용 콘텐츠처럼 외부에 노출되는 결과물 제작은 책임 범위가 다릅니다.
+공개 콘텐츠, 재배포 ZIP, 설치 패키지, 서비스 제공에 사용할 때는 이 파일과 원본 upstream
+LICENSE를 함께 확인해야 합니다.
+
+다운로드/배포 시 짧은 고지:
+
+1) 이 ZIP은 Supertonic 3와 faster-whisper를 묶은 로컬 통합 패키지입니다.
+원본 코드, 모델 가중치, 의존성은 각각의 upstream 라이선스를 따릅니다.
+
+2) "무료 다운로드" 또는 "무료 로컬 사용"은 무제한 권리 부여가 아닙니다.
+Supertonic 실행 코드의 MIT License와 Supertonic 3 모델 가중치의 Open RAIL-M 계열
+라이선스는 별개입니다.
+
+3) 생성한 텍스트, 음성, 자막, 로그, 공개 콘텐츠에 대한 책임은 사용자에게 있습니다.
+사칭, 동의 없는 음성 복제, 기만, 괴롭힘, 불법 콘텐츠, 유해 자동 생성 용도로 사용하면 안 됩니다.
+
+
+3. Korean license matrix
+
+1) Supertonic 실행 코드
+
+License:
+MIT License
+
+Meaning for users:
+Supertonic을 호출하는 예제 코드와 문서는 비교적 자유로운 MIT 라이선스를 따릅니다.
+이 도구가 어떤 공개 기술 위에서 동작하는지 확인할 때 참고하는 영역입니다.
+
+Check:
+코드 라이선스가 MIT라고 해서 음성 모델 가중치까지 동일한 조건이 적용되는 것은 아닙니다.
+모델 사용 조건은 별도로 확인해야 합니다.
+
+
+2) Supertonic 3 모델 가중치
+
+License:
+BigScience Open RAIL-M / OpenRAIL-M style model license
+
+Meaning for users:
+실제 음성 합성을 담당하는 모델 가중치에는 책임 있는 AI 사용 조건이 붙습니다.
+개인 테스트와 공개 콘텐츠 제작은 성격이 다르므로, 외부에 공개되는 결과물에 활용하기 전
+모델 라이선스 조항을 검토하는 편이 안전합니다.
+
+Check:
+무료로 다운로드할 수 있다는 사실과 무제한 사용 권한이 부여된다는 사실은 다릅니다.
+특히 사칭, 무단 음성 복제, 유해 콘텐츠 자동 생성 같은 용도는 제한됩니다.
+
+
+3) faster-whisper
+
+License:
+MIT License
+
+Meaning for users:
+생성된 WAV를 다시 분석해 실제 발화 구간에 가까운 SRT/VTT 자막을 만드는 데 사용합니다.
+자막 정확도가 필요한 영상 제작 흐름에 유용합니다.
+
+Check:
+faster-whisper 런타임은 MIT License입니다. 다만 Whisper 계열 모델 파일을 별도로
+다운로드하거나 묶어 배포하는 경우, 해당 모델 파일의 라이선스와 배포 조건을 따로 확인해야 합니다.
+최초 모델 다운로드에는 인터넷 연결이 필요할 수 있습니다.
+
+
+4) FFmpeg
+
+Scope:
+Optional external installation, not bundled in this ZIP.
+
+License:
+Gyan FFmpeg builds: GPLv3, as described by the publisher.
+FFmpeg project: generally LGPLv2.1-or-later, but builds with GPL components are governed by GPL terms.
+
+Meaning for users:
+FFmpeg는 Supertonic 3 WAV 생성에 필수가 아닙니다.
+FFmpeg가 없어도 로컬 웹 UI와 TTS 음성 생성은 사용할 수 있습니다.
+다만 MP3, M4A, MP4 같은 비-WAV 미디어 입력, 미디어 변환, 변환 기반의 정밀 자막 싱크는
+제한될 수 있습니다.
+
+Check:
+이 ZIP에는 FFmpeg 바이너리가 들어 있지 않습니다. 실행.bat은 사용자 PC에 ffmpeg가 없을 때만
+winget으로 Gyan.FFmpeg 설치를 제안합니다. 실행.bat은 FFmpeg 라이선스 설명 후 이해 여부와
+설치 동의를 두 번 확인합니다. --skip-ffmpeg로 설치 제안을 건너뛸 수 있습니다.
+
+If FFmpeg binaries are redistributed:
+GPL FFmpeg 바이너리를 ZIP, 설치 패키지, 제품, 서비스 구성물로 제3자에게 배포하거나 제공하는 경우
+GPL/LGPL에 따른 저작권 고지, 라이선스 고지, 소스코드 제공 또는 source offer 등 추가 의무가
+생길 수 있습니다. 개인 PC에 별도로 설치해 자신만 쓰는 경우와 재배포/서비스에 포함하는 경우는
+책임 범위가 다릅니다.
+
+
+5) This local TTS package
+
+License:
+Original upstream terms apply.
+
+Meaning for users:
+이 패키지는 Supertonic 3, faster-whisper, 로컬 Flask UI, 실행 스크립트, 샘플 대본,
+샘플 음성을 한 작업 흐름으로 묶은 통합 도구입니다.
+
+Check:
+공식 Supertone/SYSTRAN 제품이 아닙니다. 생성 음성, 대본, 자막, 로그, 공개 콘텐츠에 대한
+책임은 사용자에게 있습니다. ZIP 루트의 LICENSE_NOTICES.txt와 로컬 서버 실행 후
+http://127.0.0.1:3093/license-notices 에서 같은 고지를 확인할 수 있습니다.
+
+
+4. Public use and redistribution checklist
+
+1) ZIP 루트의 LICENSE_NOTICES.txt를 유지합니다.
+
+2) Supertonic 예제 코드를 재배포하면 upstream MIT 고지와 라이선스를 보존합니다.
+In this workspace, see:
+supertonic-upstream/LICENSE
+
+3) Supertonic 3 모델 파일을 ZIP, Docker image, offline cache, mirror, 설치 패키지에 묶어
+배포하면 Hugging Face 모델 LICENSE 파일을 함께 포함합니다.
+
+4) faster-whisper source, wheel, virtual environment, model cache를 묶어 배포하면 MIT License와
+사용한 Whisper 계열 모델의 라이선스를 함께 확인하고 포함합니다.
+
+5) 현재 ZIP은 FFmpeg 바이너리를 포함하지 않습니다. 향후 FFmpeg를 묶어 배포하면 GPL/LGPL에
+따른 라이선스 고지, 소스 제공 또는 source offer, 저작권 고지 유지 의무를 확인합니다.
+
+6) 다운로드 페이지와 README에 upstream 링크를 유지합니다.
+Supertonic:
+https://github.com/supertone-inc/supertonic
+
+Supertonic 3 model license:
+https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE
+
+faster-whisper:
+https://github.com/SYSTRAN/faster-whisper
+
+FFmpeg legal:
+https://www.ffmpeg.org/legal.html
+
+Gyan FFmpeg builds:
+https://www.gyan.dev/ffmpeg/builds/
+
+7) 다운로드 버튼 근처에는 최소한 아래 취지의 문구를 표시하는 것을 권장합니다.
+이 ZIP은 Supertonic 3와 faster-whisper를 활용한 로컬 통합 패키지이며, 원본 코드, 모델
+가중치, 의존성은 각각의 upstream 라이선스를 따릅니다. 생성 음성, 텍스트, 자막, 로그,
+공개 콘텐츠의 사용 책임은 사용자에게 있습니다.
+
+8) FFmpeg를 언급할 때는 "ZIP 미포함", "선택 설치", "Gyan GPLv3 build"를 함께 명시합니다.
+
+
+5. Four license layers
+
+Distribution/download guide page:
+https://min-inter.co.kr/youtube-curator-danbi/columns/supertonic3-free-local-tts-zip-guide
+
+Local web UI license notice address:
+http://127.0.0.1:3093/license-notices
+
+1) Supertonic GitHub example code
+
+Upstream project:
+https://github.com/supertone-inc/supertonic
+
+License:
+MIT License
+
+Copyright notice:
+Copyright (c) 2025 Supertone Inc.
+
+How it is used here:
+The upstream repository is used as a reference for Supertonic examples, runtime options,
+language support, model invocation patterns, ONNX flow, and local implementation behavior.
+If this package includes copied or modified source code from the upstream repository, keep
+the upstream copyright notice and MIT license terms with that code.
+
+Important boundary:
+The MIT license for the GitHub example code does not automatically apply to the Supertonic 3
+model weights. Code license and model license must be treated separately.
+
+
+2) Supertonic 3 model weights
+
+Model page:
+https://huggingface.co/Supertone/supertonic-3
+
+Model license file:
+https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE
+
+License:
+BigScience Open RAIL-M / OpenRAIL-M style model license as published with the model.
+The Hugging Face model page displays license: openrail.
+
+Copyright notice:
+Copyright (c) 2026 Supertone Inc.
+
+How it is used here:
+The local app calls the Supertonic Python SDK, which may download Supertonic 3 model assets
+from Hugging Face on first use. If model files are bundled into a ZIP, mirror, cache, Docker
+image, or offline package, include a copy of the upstream model LICENSE file and preserve
+all attribution and usage restrictions.
+
+Important restrictions:
+The model license includes use-based restrictions. The following summary is not exhaustive.
+Users must not use the model or generated output for unlawful activity, harming minors,
+deceptive generation, undisclosed machine-generated content where disclosure is required,
+harassment, defamation, impersonation or deepfakes without consent, discriminatory uses,
+medical advice or interpretation, or law-enforcement/justice decisions such as predictive
+profiling. Check the upstream model license before redistribution or public service use.
+
+Output responsibility:
+The upstream model license states that users are accountable for the output they generate
+and for later uses of that output. This local package does not transfer that responsibility
+to Supertone, SYSTRAN, the local UI author, or the packager.
+
+
+3) faster-whisper
+
+Upstream project:
+https://github.com/SYSTRAN/faster-whisper
+
+License:
+MIT License
+
+Copyright notice:
+Copyright (c) 2023 SYSTRAN
+
+How it is used here:
+The optional subtitle refinement workflow uses faster-whisper to listen to generated WAV
+files and create SRT, VTT, TXT, JSON, and log outputs closer to actual speech timing.
+
+Important boundary:
+faster-whisper is the optimized transcription runtime. If it downloads or uses separate
+Whisper-family model files, those model files may have their own licenses and redistribution
+conditions. Keep those model licenses with any bundled model cache or offline package.
+
+Optional FFmpeg note:
+The launcher may offer to install FFmpeg only when ffmpeg is not already available on the
+user's PC. FFmpeg is not required for basic Supertonic 3 TTS generation or WAV output.
+Skipping FFmpeg does not prevent the local web app from generating TTS audio. However,
+non-WAV media input, media conversion, and conversion-based accurate subtitle sync workflows
+may be limited without FFmpeg.
+
+This ZIP does not bundle FFmpeg binaries. If the user agrees, 실행.bat installs the Windows
+package Gyan.FFmpeg through winget. Gyan's FFmpeg builds are described by the publisher as
+GPLv3 builds. FFmpeg itself is generally licensed under LGPLv2.1-or-later, but FFmpeg builds
+that include GPL components are governed by GPL terms. Review the upstream legal and build
+pages before installing or redistributing FFmpeg:
+https://www.ffmpeg.org/legal.html
+https://www.gyan.dev/ffmpeg/builds/
+
+The web UI MP3 conversion button also uses the user's locally installed FFmpeg. Before it
+converts WAV to MP3, the UI displays a short warning twice: personal use is OK, FFmpeg is
+not bundled in this ZIP, conversion uses the user's local FFmpeg, and redistribution requires
+checking the relevant GPL/LGPL terms.
+
+
+4) This local ZIP/workspace integration
+
+Package scope:
+This workspace combines Supertonic reference material, a local Flask web UI, execution scripts,
+sample scripts, generated voice sample previews, and a faster-whisper subtitle refinement helper
+into one practical local workflow.
+
+Local UI and workflow source attribution:
+Source / idea attribution shown in the web UI:
+Curator Danbi's Web App Idea Archive
+https://min-inter.co.kr
+
+Local integration files:
+The files under supertonic3-local-tts, supertonic3-whisper-subtitles, root README files,
+root execution scripts, public sample catalogs, and local UI code are integration-layer files
+unless a file states otherwise. They do not change the licenses of upstream Supertonic,
+Supertonic 3 model weights, faster-whisper, or other dependencies.
+
+Sample scripts and sample voices:
+Sample text files and generated sample WAV files are included only for local preview and
+testing. Generated sample voices remain subject to the applicable Supertonic 3 model license
+and usage restrictions. Do not present generated sample voices as a real person, official
+endorsement, or proof of rights to clone or imitate any speaker.
+
+No official endorsement:
+This integration package is not the official Supertonic repository, not the official
+faster-whisper repository, and not an official Supertone or SYSTRAN product unless those
+upstream projects explicitly say so. Do not use upstream names, marks, logos, or links in a
+way that implies endorsement.
+
+
+6. Redistribution checklist
+
+1) Keep this LICENSE_NOTICES.txt file in the ZIP root.
+
+2) Keep the Supertonic upstream license when redistributing copied Supertonic example code.
+In this workspace, the upstream license is also available at:
+supertonic-upstream/LICENSE
+
+3) If Supertonic 3 model files are bundled, include the upstream model LICENSE file from:
+https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE
+
+4) If faster-whisper source, wheels, a virtual environment, or model caches are bundled,
+include the corresponding faster-whisper MIT license and any model licenses required by the
+downloaded transcription model.
+
+5) If FFmpeg binaries are bundled in a future release, include the applicable FFmpeg/Gyan
+license notices, source-code offer or source links, and redistribution obligations. The
+current ZIP does not bundle FFmpeg.
+
+6) Preserve these upstream links in public download pages and README files:
+Supertonic GitHub:
+https://github.com/supertone-inc/supertonic
+
+Supertonic 3 model license:
+https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE
+
+faster-whisper GitHub:
+https://github.com/SYSTRAN/faster-whisper
+
+Local UI source attribution:
+https://min-inter.co.kr
+
+Distribution/download guide:
+https://min-inter.co.kr/youtube-curator-danbi/columns/supertonic3-free-local-tts-zip-guide
+
+Local license notice URL:
+http://127.0.0.1:3093/license-notices
+
+FFmpeg legal notice:
+https://www.ffmpeg.org/legal.html
+
+Gyan FFmpeg builds:
+https://www.gyan.dev/ffmpeg/builds/
+
+7) Do not advertise the package only as "free TTS" without also stating that code, model
+weights, dependencies, and generated outputs each have separate terms and responsibilities.
+
+8) Add a visible notice near the download button:
+This ZIP is a local integration package using Supertonic 3 and faster-whisper. Original code,
+model weights, and dependencies follow their own upstream licenses. Generated audio and
+subtitles are the user's responsibility and must not be used for impersonation, non-consensual
+voice cloning, deception, harassment, unlawful content, or other harmful uses.
+
+If mentioning FFmpeg near the download button, state that FFmpeg is an optional external
+installation, not bundled in this ZIP, and that Gyan.FFmpeg is a GPLv3 build.
+
+
+7. Dependency note
+
+This package may use Python packages such as Flask, NumPy, ONNX Runtime, Hugging Face Hub,
+CTranslate2, faster-whisper, and Supertonic. Their package metadata and upstream repositories
+remain the source of truth for each dependency license. If a release ZIP includes installed
+virtual environments, wheels, or vendored packages, include their license metadata as well.
+
+
+8. Date
+
+Prepared for this local workspace on 2026-05-17.
+Public TTS SaaS license notice section updated on 2026-05-27.

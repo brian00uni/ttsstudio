@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>슈퍼토닉 로컬 TTS(Supertonic Local TTS)</title>
+  <link rel="stylesheet" href="/assets/style.css?v=20260520-text-scale-slider" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="topbar-main">
+        <p class="eyebrow">로컬 온디바이스 TTS(Local On-Device TTS)</p>
+        <h1>슈퍼토닉 스튜디오(Supertonic Studio)</h1>
+        <div class="header-utility-row">
+          <div class="script-path-guide" aria-label="대본 및 산출물 경로 안내(Script and output path guide)">
+            <div>
+              <strong>로컬 TXT 파일 위치</strong>
+              <code>data/script_customs/*.txt</code>
+            </div>
+            <div>
+              <strong>대본 요청 파일 위치</strong>
+              <code>data/script_requests/latest.json</code>
+            </div>
+            <div>
+              <strong>샘플 목록 파일 위치</strong>
+              <code>public/scripts.json</code>
+            </div>
+            <div>
+              <strong>생성 결과 파일 위치</strong>
+              <code>data/*.wav · *.srt · *.vtt · *.txt</code>
+            </div>
+          </div>
+          <div class="preset-row header-preset-row">
+            <div class="header-preset-title">
+              <strong>사용자 설정(Custom)</strong>
+              <span class="topbar-separator" aria-hidden="true">|</span>
+              <span class="preset-status" id="presetStatus">설정 1: 비어 있음</span>
+            </div>
+            <div class="header-preset-controls">
+              <label class="field compact" for="presetSlot">
+                <span class="visually-hidden">사용자 설정(Custom)</span>
+                <select id="presetSlot">
+                  <option value="1">설정 1(Custom 1)</option>
+                  <option value="2">설정 2(Custom 2)</option>
+                  <option value="3">설정 3(Custom 3)</option>
+                  <option value="4">설정 4(Custom 4)</option>
+                  <option value="5">설정 5(Custom 5)</option>
+                </select>
+              </label>
+              <button class="secondary" id="loadPreset" type="button">불러오기</button>
+              <button class="secondary" id="savePreset" type="button">저장</button>
+              <button class="secondary subtle" id="clearPreset" type="button">삭제</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-link-row">
+          <a class="source-link" href="https://min-inter.co.kr/youtube-curator-danbi/columns/supertonic3-free-local-tts-zip-guide" target="_blank" rel="noreferrer">출처: 큐레이터 단비's 웹앱 아이디어 창고 - 배포 안내(Guide)</a>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <a class="source-link" href="/license-notices" target="_blank" rel="noreferrer">라이선스(License)</a>
+        </div>
+        <div class="topbar-link-row">
+          <a class="source-link" href="https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE" target="_blank" rel="noreferrer">모델 라이선스(Model License)</a>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <a class="source-link" href="https://github.com/supertone-inc/supertonic" target="_blank" rel="noreferrer">Supertonic GitHub</a>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <a class="source-link" href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noreferrer">faster-whisper GitHub</a>
+        </div>
+        <div class="topbar-link-row topbar-ffmpeg-row">
+          <span class="source-link source-label source-label-warning">미포함된 소스코드</span>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <a class="source-link" href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noreferrer">FFmpeg 선택설치 소스(Gyan)</a>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <a class="source-link" href="https://www.ffmpeg.org/legal.html" target="_blank" rel="noreferrer">FFmpeg 라이선스(Legal)</a>
+        </div>
+        <div class="topbar-state-card">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="true">라이트(Light)</button>
+          <span class="topbar-separator" aria-hidden="true">|</span>
+          <div class="status" id="status">확인 중(checking)</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <form class="panel composer" id="ttsForm">
+        <div class="script-tabs" role="tablist" aria-label="대본 입력 방식(Script input mode)">
+          <button class="script-tab is-active" id="scriptTabManual" type="button" role="tab" aria-selected="true" aria-controls="scriptPanelManual" data-script-tab="manual">사용자 입력(User text)</button>
+          <button class="script-tab" id="scriptTabCustom" type="button" role="tab" aria-selected="false" aria-controls="scriptPanelCustom" data-script-tab="custom">로컬 TXT(Local TXT)</button>
+          <button class="script-tab" id="scriptTabAssist" type="button" role="tab" aria-selected="false" aria-controls="scriptPanelAssist" data-script-tab="assist">대본 요청 &amp; 샘플(Request &amp; Samples)</button>
+        </div>
+
+        <div class="script-panel script-panel-note" id="scriptPanelManual" role="tabpanel" aria-labelledby="scriptTabManual">
+          <strong>직접 입력 모드(Manual mode)</strong>
+          <span class="preset-status">아래 텍스트 영역에 바로 입력하고 생성합니다.</span>
+        </div>
+
+        <div class="script-panel script-custom-row" id="scriptPanelCustom" role="tabpanel" aria-labelledby="scriptTabCustom" hidden>
+          <select class="visually-hidden" id="customScriptList" aria-hidden="true" tabindex="-1">
+            <option value="">data/script_customs 폴더의 TXT 파일</option>
+          </select>
+          <div class="custom-script-card-panel">
+            <div class="custom-script-toolbar-line">
+              <div class="custom-script-compact-head">
+                <strong>로컬 TXT 대본(Local TXT script)</strong>
+                <span>파일 버튼을 누르면 텍스트 영역에 바로 불러옵니다.</span>
+              </div>
+              <div class="custom-script-sort" role="group" aria-label="로컬 TXT 정렬(Local TXT sort)">
+                <button class="custom-sort-button is-active" type="button" data-custom-sort="latest">최신</button>
+                <button class="custom-sort-button" type="button" data-custom-sort="oldest">오래된</button>
+                <button class="custom-sort-button" type="button" data-custom-sort="name_asc">이름↑</button>
+                <button class="custom-sort-button" type="button" data-custom-sort="name_desc">이름↓</button>
+              </div>
+              <input class="custom-script-search" id="customScriptSearch" type="search" placeholder="검색" autocomplete="off" />
+              <button class="secondary custom-reload-button" id="reloadCustomScripts" type="button">새로고침</button>
+              <span class="preset-status" id="customScriptStatus">data/script_customs 폴더의 TXT 파일을 자동 인식합니다.</span>
+            </div>
+            <div class="custom-script-cards" id="customScriptCards" aria-label="로컬 TXT 파일 버튼(Local TXT file buttons)"></div>
+          </div>
+        </div>
+
+        <div class="script-panel script-panel-stack" id="scriptPanelAssist" role="tabpanel" aria-labelledby="scriptTabAssist" hidden>
+          <div class="script-panel-note script-panel-intro">
+            <strong>보조 입력 도구(Request & Samples)</strong>
+            <span class="preset-status">새 대본 요청 파일을 저장하거나 준비된 샘플을 텍스트 영역으로 불러옵니다.</span>
+          </div>
+
+          <div class="script-request-row" id="scriptPanelRequest">
+            <label class="field script-request-topic" for="scriptRequestTopic">
+              <span>대본 요청 주제(Script request topic)</span>
+              <input id="scriptRequestTopic" type="text" placeholder="예: 30대 직장인을 위한 5분 위로 낭독문" />
+            </label>
+            <label class="field compact" for="scriptRequestTone">
+              <span>톤(Tone)</span>
+              <select id="scriptRequestTone">
+                <option value="차분함">차분함(Calm)</option>
+                <option value="따뜻함">따뜻함(Warm)</option>
+                <option value="정보형">정보형(Informative)</option>
+                <option value="몰입형">몰입형(Immersive)</option>
+                <option value="유쾌함">유쾌함(Bright)</option>
+              </select>
+            </label>
+            <label class="field compact" for="scriptRequestLength">
+              <span>분량(Length)</span>
+              <input id="scriptRequestLength" type="text" value="3분" />
+            </label>
+            <label class="field compact" for="scriptRequestAudience">
+              <span>대상(Audience)</span>
+              <input id="scriptRequestAudience" type="text" value="일반 청취자" />
+            </label>
+            <label class="field compact" for="scriptRequestExpressionMode">
+              <span>&lt;&gt; 표현 태그(Expression tags)</span>
+              <select id="scriptRequestExpressionMode">
+                <option value="none" selected>없음(None)</option>
+                <option value="use">있음(Use)</option>
+              </select>
+            </label>
+            <label class="field script-request-notes" for="scriptRequestNotes">
+              <span>추가 요청(Notes)</span>
+              <input id="scriptRequestNotes" type="text" placeholder="포함할 키워드, 금지 표현, 분위기 등" />
+            </label>
+            <button class="secondary script-request-submit" id="scriptRequestSubmit" type="button">대본 요청 저장(Request)</button>
+            <span class="preset-status script-request-status" id="scriptRequestStatus">AI에게 넘길 요청 파일을 저장합니다.</span>
+          </div>
+
+          <div class="script-row" id="scriptPanelSample">
+            <label class="field script-select" for="scriptCatalog">
+              <span>샘플 대본(Sample script)</span>
+              <select id="scriptCatalog">
+                <option value="">샘플 선택(Choose sample)</option>
+              </select>
+            </label>
+            <button class="secondary" id="reloadScripts" type="button">새로고침(Reload)</button>
+            <span class="preset-status" id="scriptStatus">대본 불러오는 중(Loading scripts)</span>
+          </div>
+        </div>
+
+        <div class="field text-field">
+          <div class="text-field-head">
+            <label for="text">텍스트(Text)</label>
+            <label class="text-scale-control" for="textScale">
+              <span>편집 글자 크기</span>
+              <input id="textScale" type="range" min="90" max="180" step="5" value="115" />
+              <output id="textScaleValue" for="textScale">115%</output>
+            </label>
+          </div>
+          <textarea id="text" rows="9" placeholder="합성할 텍스트를 입력하세요(Enter text to synthesize).">슈퍼토닉 3 로컬 TTS 테스트입니다(Hello from Supertonic 3 local TTS).</textarea>
+        </div>
+
+        <div class="tag-row" id="tagRow" aria-label="표현 태그(Expression tags)"></div>
+
+        <button class="primary generate-top" id="generate" type="submit">생성(Generate)</button>
+
+        <details class="advanced filter-picks" open>
+          <summary>필터 값(Filter values)</summary>
+          <div class="control-grid slim">
+            <label class="field" for="speedPreset" data-tip-key="speed">
+              <span>속도 선택(Speed pick)</span>
+              <select id="speedPreset"></select>
+            </label>
+            <label class="field" for="stepsPreset" data-tip-key="steps">
+              <span>단계 선택(Steps pick)</span>
+              <select id="stepsPreset"></select>
+            </label>
+            <label class="field" for="chunkPreset" data-tip-key="chunk">
+              <span>청크 선택(Chunk pick)</span>
+              <select id="chunkPreset"></select>
+            </label>
+            <label class="field" for="silencePreset" data-tip-key="silence">
+              <span>무음 선택(Silence pick)</span>
+              <select id="silencePreset"></select>
+            </label>
+          </div>
+          <aside class="filter-tip" id="filterTip" aria-live="polite">
+            <p class="filter-tip-kicker">설정 팁(Setting tip)</p>
+            <h2 id="filterTipTitle">속도(Speed)</h2>
+            <p id="filterTipBody">음성이 읽히는 빠르기를 조절합니다. 값이 높을수록 빠르게 읽고, 너무 높으면 발음이 급해질 수 있습니다.</p>
+            <ul class="filter-tip-details" id="filterTipDetails">
+              <li>낮은 값은 차분하지만 늘어질 수 있습니다.</li>
+              <li>높은 값은 빠르지만 발음이 급해질 수 있습니다.</li>
+            </ul>
+            <p class="filter-tip-note" id="filterTipNote">권장(Recommended): 1.00~1.15, 기본(Default): 1.05</p>
+          </aside>
+        </details>
+
+        <div class="control-grid">
+          <label class="field" for="model" data-tip-key="model">
+            <span>모델(Model)</span>
+            <select id="model"></select>
+          </label>
+
+          <div class="field voice-field" data-tip-key="voice">
+            <label for="voice">음성(Voice)</label>
+            <div class="voice-select-row">
+              <select id="voice"></select>
+              <button class="secondary voice-preview-button" id="voicePreviewCurrent" type="button">듣기(Play)</button>
+            </div>
+          </div>
+
+          <label class="field" for="lang" data-tip-key="language">
+            <span>언어(Language)</span>
+            <select id="lang"></select>
+          </label>
+
+          <label class="field" for="speed" data-tip-key="speed">
+            <span>속도(Speed)</span>
+            <input id="speed" type="number" min="0.7" max="2" step="0.05" value="1.05" readonly aria-readonly="true" data-locked-input="true" />
+          </label>
+
+          <label class="field" for="steps" data-tip-key="steps">
+            <span>단계(Steps)</span>
+            <input id="steps" type="number" min="1" max="100" step="1" value="8" readonly aria-readonly="true" data-locked-input="true" />
+          </label>
+
+          <label class="field" for="maxChunkLength" data-tip-key="chunk">
+            <span>최대 청크(Max chunk)</span>
+            <input id="maxChunkLength" type="number" min="10" max="100000" step="10" placeholder="자동(auto)" readonly aria-readonly="true" data-locked-input="true" />
+          </label>
+
+          <label class="field" for="silenceDuration" data-tip-key="silence">
+            <span>청크 무음(Chunk silence)</span>
+            <input id="silenceDuration" type="number" min="0" max="30" step="0.05" value="0.3" readonly aria-readonly="true" data-locked-input="true" />
+          </label>
+
+          <label class="field" for="voiceStylePath" data-tip-key="style">
+            <span>스타일 JSON 경로(Style JSON path)</span>
+            <input id="voiceStylePath" type="text" placeholder="선택 사항(optional)" />
+          </label>
+        </div>
+
+        <details class="advanced" open>
+          <summary>런타임(Runtime)</summary>
+          <div class="control-grid slim">
+            <label class="field" for="modelDir" data-tip-key="modelDir">
+              <span>모델 폴더(Model dir)</span>
+              <input id="modelDir" type="text" placeholder="기본 캐시(default cache)" />
+            </label>
+
+            <label class="field" for="intraThreads" data-tip-key="intraThreads">
+              <span>내부 스레드(Intra threads)</span>
+              <input id="intraThreads" type="number" min="1" step="1" placeholder="자동(auto)" readonly aria-readonly="true" data-locked-input="true" />
+            </label>
+
+            <label class="field" for="intraThreadsPreset" data-tip-key="intraThreads">
+              <span>내부 선택(Intra pick)</span>
+              <select id="intraThreadsPreset"></select>
+            </label>
+
+            <label class="field" for="interThreads" data-tip-key="interThreads">
+              <span>상호 스레드(Inter threads)</span>
+              <input id="interThreads" type="number" min="1" step="1" placeholder="자동(auto)" readonly aria-readonly="true" data-locked-input="true" />
+            </label>
+
+            <label class="field" for="interThreadsPreset" data-tip-key="interThreads">
+              <span>상호 선택(Inter pick)</span>
+              <select id="interThreadsPreset"></select>
+            </label>
+
+            <label class="check" data-tip-key="autoDownload">
+              <input id="autoDownload" type="checkbox" checked />
+              <span>자동 다운로드(Auto download)</span>
+            </label>
+
+            <label class="check" data-tip-key="verbose">
+              <input id="verbose" type="checkbox" checked />
+              <span>자세한 로그(Verbose)</span>
+            </label>
+
+            <label class="check" data-tip-key="whisperRefine">
+              <input id="whisperRefine" type="checkbox" />
+              <span>Whisper 자막 보정(Whisper refine)</span>
+            </label>
+          </div>
+        </details>
+
+      </form>
+
+      <aside class="panel output">
+        <h2>출력(Output)</h2>
+        <audio id="player" controls></audio>
+        <div class="downloads">
+          <a id="download" class="download" href="#" download>음성(WAV)</a>
+          <button id="mp3ConvertDownload" class="download mp3-action" type="button" disabled aria-disabled="true">MP3 변환/다운로드(MP3)</button>
+          <a id="scriptDownload" class="download" href="#" download>대본(Script)</a>
+          <a id="srtDownload" class="download" href="#" download>자막(SRT)</a>
+          <a id="vttDownload" class="download" href="#" download>자막(VTT)</a>
+          <button id="refineExisting" class="download refine-action" type="button" disabled aria-disabled="true">Whisper 보정 실행(Refine)</button>
+          <a id="whisperSrtDownload" class="download" href="#" download>Whisper 자막(SRT)</a>
+          <a id="whisperVttDownload" class="download" href="#" download>Whisper 자막(VTT)</a>
+          <a id="whisperTxtDownload" class="download" href="#" download>Whisper 대본(TXT)</a>
+          <a id="whisperLogDownload" class="download" href="#" download>Whisper 로그(Log)</a>
+          <a id="inputLogDownload" class="download" href="#" download>입력 로그(Input log)</a>
+        </div>
+        <pre id="log">준비됨(Ready).</pre>
+      </aside>
+    </section>
+
+    <section class="panel reference-panel">
+      <div class="reference-grid">
+        <img src="/public/only-cpu-can-generate.jpg" alt="무료 TTS CPU만으로 작동 확인(CPU-only local TTS check)" loading="lazy" />
+        <a class="reference-image-link" href="https://github.com/supertone-inc/supertonic" target="_blank" rel="noreferrer" aria-label="Supertonic GitHub 열기(Open Supertonic GitHub)">
+          <img src="/public/supertonic_3.jpg" alt="슈퍼토닉 3 참고 이미지(Supertonic 3 reference)" loading="lazy" />
+        </a>
+      </div>
+
+      <article class="project-guide" id="projectGuide">
+        <h2>프로젝트 폴더 사용 구조(Project Folder Structure)</h2>
+        <p>
+          이 작업 공간은 크게 두 폴더로 나뉩니다. <strong>supertonic-upstream</strong>은 Supertone의 공식 슈퍼토닉(Supertonic) 저장소를 내려받아 둔 원본 참고 자료(Upstream reference)이고,
+          <strong>supertonic3-local-tts</strong>는 그 내용을 바탕으로 만든 로컬 실행용 TTS 스튜디오(Local TTS studio)입니다. 실제로 브라우저에서 사용하는 서버와 UI는
+          supertonic3-local-tts 쪽이고, upstream 폴더는 모델 구조(Model structure), 예제(Examples), 언어 목록(Language list), ONNX 호출 방식(ONNX call flow),
+          브라우저/Node/Python 구현 방식을 확인하는 기준점으로 사용합니다.
+        </p>
+
+        <h3>supertonic-upstream</h3>
+        <p>
+          공식 저장소 원본(Official source repository)입니다. 파이썬(Python), 노드(Node.js), 웹(Web), 자바(Java), C++, 스위프트(Swift), 러스트(Rust) 같은 여러 런타임 예제가 들어 있고,
+          슈퍼토닉 3(Supertonic 3)가 어떤 모델 입력을 받고 어떤 옵션을 제공하는지 확인할 때 사용합니다. 이 폴더를 직접 서비스하는 것이 목적은 아닙니다.
+          새 옵션을 붙이거나 동작을 확인할 때 README, 각 언어별 예제(example), 도우미 구현(helper)을 읽고 로컬 앱에 필요한 부분만 가져오는 참고 자료입니다.
+        </p>
+        <ul>
+          <li><code>README.md</code>: 슈퍼토닉 3(Supertonic 3)의 특징, 언어 지원(Language support), 성능 설명(Performance), 전체 예제 진입점입니다.</li>
+          <li><code>py/</code>: 파이썬 ONNX 예제(Python ONNX example)입니다. steps, speed, batch, chunking 같은 합성 흐름을 확인할 때 봅니다.</li>
+          <li><code>web/</code>: 브라우저 ONNX 런타임 웹 예제(ONNX Runtime Web example)입니다. UI 옵션과 언어 목록을 맞출 때 참고합니다.</li>
+          <li><code>nodejs/</code>: 서버 사이드 자바스크립트 예제(Server-side JavaScript example)입니다. 텍스트 전처리(Text preprocessing), 긴 글 분할(Long-form chunking), 무음 길이(Silence duration) 로직을 비교할 때 유용합니다.</li>
+        </ul>
+
+        <h3>supertonic3-local-tts</h3>
+        <p>
+          현재 사용하는 로컬 앱(Local app)입니다. 플라스크 서버(Flask server)가 UI와 API를 제공하고, 설치된 <code>supertonic</code> 파이썬 SDK(Python SDK)를 통해 슈퍼토닉 3(Supertonic 3) 모델을 호출합니다.
+          사용자는 이 폴더에서 서버를 띄우고, 브라우저에서 텍스트를 입력하거나 JSON 대본(JSON script)을 선택한 뒤 WAV, 대본 TXT(Script TXT), 입력 로그(Input log), SRT, VTT를 생성합니다.
+        </p>
+        <ul>
+          <li><code>src/app.py</code>: 웹 서버(Web server), API, public 파일 서빙, 오디오와 자막 보조 파일(Sidecar files) 생성을 담당합니다.</li>
+          <li><code>src/supertonic3_engine.py</code>: 슈퍼토닉 SDK(Supertonic SDK)를 감싸는 엔진 래퍼(Engine wrapper)입니다. model, voice, lang, speed, steps, chunk, silence 옵션을 실제 합성 호출로 넘깁니다.</li>
+          <li><code>ui/</code>: 브라우저 UI(Browser UI)입니다. 대본 선택(Script selection), 대본 요청 저장(Script request), 설정 저장 Custom 1~5, 드롭다운 값 선택, 다운로드 버튼을 처리합니다.</li>
+          <li><code>public/scripts.json</code>: 페이지가 자동으로 읽는 대본 카탈로그(Script catalog)입니다. 여기에 대본과 권장 설정(Recommended settings)을 추가하면 UI의 대본(Script) 드롭다운에 나타납니다.</li>
+          <li><code>data/</code>: 생성된 WAV, script.txt, input_log.txt, SRT, VTT와 <code>script_requests/</code> 대본 요청 JSON이 저장되는 기본 출력 폴더(Output folder)입니다.</li>
+        </ul>
+
+        <h3>실행 흐름(Run Flow)</h3>
+        <ol>
+          <li>파워셸(PowerShell)에서 <code>supertonic3-local-tts</code> 폴더로 이동한 뒤 <code>.\.venv-win\Scripts\python.exe src\app.py</code>로 서버를 실행합니다.</li>
+          <li>브라우저(Browser)에서 <code>http://127.0.0.1:3093</code>에 접속합니다.</li>
+          <li>대본(Script) 드롭다운에서 <code>public/scripts.json</code>에 있는 대본을 선택하거나 텍스트(Text) 영역에 직접 입력합니다.</li>
+          <li>새 대본이 필요하면 대본 요청 주제(Script request topic)를 입력하고 대본 요청 저장(Request)을 누릅니다. 이 요청은 <code>data/script_requests/latest.json</code>에 저장되며, Codex나 Cursor에게 최신 요청 처리를 지시하면 대본 파일과 <code>public/scripts.json</code> 등록을 진행할 수 있습니다.</li>
+          <li>음성(Voice), 언어(Language), 속도(Speed), 단계(Steps), 최대 청크(Max chunk), 청크 무음(Chunk silence)을 조정하고, 자주 쓰는 조합은 사용자 설정(Custom) 1~5에 저장합니다.</li>
+          <li>생성(Generate)을 누르면 서버가 슈퍼토닉 3(Supertonic 3) 모델을 호출해 WAV를 만들고, 같은 이름으로 대본(Script), 입력 로그(Input log), SRT, VTT를 함께 저장합니다.</li>
+        </ol>
+
+        <h3>슈퍼토닉 3란 무엇인가(What Is Supertonic 3)</h3>
+        <p>
+          슈퍼토닉 3(Supertonic 3)는 Supertone이 공개한 온디바이스 텍스트 음성 변환 모델(On-device text-to-speech model)입니다. 클라우드 API(Cloud API)를 호출하는 방식이 아니라
+          ONNX 런타임(ONNX Runtime) 기반으로 로컬 CPU에서 실행할 수 있도록 설계되어, 네트워크 의존성(Network dependency)과 외부 전송 부담을 줄이는 것이 핵심입니다.
+          공개 프리셋 음성(Preset voices)은 M1부터 M5, F1부터 F5까지 사용할 수 있고, 영어, 한국어, 일본어를 포함한 31개 언어(31 languages)와 알 수 없는 언어용 <code>na</code> 대체값(fallback)을 지원합니다.
+        </p>
+        <p>
+          주요 특징은 빠른 로컬 추론(Fast local inference), 작은 모델 크기(Small model size), 반복/누락이 줄어든 읽기 안정성(Reading stability), 긴 텍스트 자동 분할(Long-text chunking),
+          청크 사이 무음 삽입(Silence between chunks), <code>&lt;laugh&gt;</code>, <code>&lt;breath&gt;</code>, <code>&lt;sigh&gt;</code> 같은 간단한 표현 태그(Expression tags) 지원입니다.
+          이 로컬 스튜디오(Local studio)는 그 기능을 바로 쓰기 쉽게 감싼 도구입니다.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <aside class="sticky-toolbox" aria-label="목소리 샘플과 비공식 고지(Voice samples and notice)">
+    <section class="voice-sample-panel sticky-voice-panel" aria-label="음성 샘플 10종(10 voice samples)">
+      <div class="voice-sample-head">
+        <h2>🎙️ 목소리 10종 빠른 선택</h2>
+        <span class="preset-status" id="voiceSampleStatus">샘플 불러오는 중(Loading samples)</span>
+      </div>
+      <audio id="voiceSamplePlayer" controls></audio>
+      <div class="voice-sample-grid" id="voiceSampleGrid"></div>
+    </section>
+
+    <section class="affiliation-notice" aria-label="비공식 개발 고지(Unaffiliated notice)">
+      <strong>ℹ️ 비공식 개발 고지</strong>
+      <p>
+        본 프로그램은 슈퍼톤(하이브)의
+        <a href="https://github.com/supertone-inc/supertonic" target="_blank" rel="noreferrer">슈퍼토닉3 깃헙 모델</a>을 기반으로,
+        유튜버 큐레이터 단비가 시청자분들의 사용 편의를 위하여 개발한 도구입니다.
+      </p>
+    </section>
+  </aside>
+
+  <script src="/assets/main.js?v=20260520-text-scale-slider"></script>
+</body>
+</html>

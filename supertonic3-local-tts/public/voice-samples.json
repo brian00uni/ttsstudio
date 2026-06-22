@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "script_url": "/public/voice-samples/voice-test-ko.txt",
+  "samples": [
+    {
+      "voice": "M1",
+      "label": "M1 남성 1(Male 1)",
+      "gender": "남성",
+      "url": "/public/voice-samples/M1.wav"
+    },
+    {
+      "voice": "M2",
+      "label": "M2 남성 2(Male 2)",
+      "gender": "남성",
+      "url": "/public/voice-samples/M2.wav"
+    },
+    {
+      "voice": "M3",
+      "label": "M3 남성 3(Male 3)",
+      "gender": "남성",
+      "url": "/public/voice-samples/M3.wav"
+    },
+    {
+      "voice": "M4",
+      "label": "M4 남성 4(Male 4)",
+      "gender": "남성",
+      "url": "/public/voice-samples/M4.wav"
+    },
+    {
+      "voice": "M5",
+      "label": "M5 남성 5(Male 5)",
+      "gender": "남성",
+      "url": "/public/voice-samples/M5.wav"
+    },
+    {
+      "voice": "F1",
+      "label": "F1 여성 1(Female 1)",
+      "gender": "여성",
+      "url": "/public/voice-samples/F1.wav"
+    },
+    {
+      "voice": "F2",
+      "label": "F2 여성 2(Female 2)",
+      "gender": "여성",
+      "url": "/public/voice-samples/F2.wav"
+    },
+    {
+      "voice": "F3",
+      "label": "F3 여성 3(Female 3)",
+      "gender": "여성",
+      "url": "/public/voice-samples/F3.wav"
+    },
+    {
+      "voice": "F4",
+      "label": "F4 여성 4(Female 4)",
+      "gender": "여성",
+      "url": "/public/voice-samples/F4.wav"
+    },
+    {
+      "voice": "F5",
+      "label": "F5 여성 5(Female 5)",
+      "gender": "여성",
+      "url": "/public/voice-samples/F5.wav"
+    }
+  ]
+}

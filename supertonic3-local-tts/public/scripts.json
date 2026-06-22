@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "scripts": [
+    {
+      "id": "cpu-local-check-ko",
+      "title": "CPU 로컬 작동 확인(CPU Local Check)",
+      "description": "CPU만으로 슈퍼토닉 3(Supertonic 3) 로컬 TTS가 동작한다는 짧은 확인 멘트",
+      "model": "supertonic-3",
+      "voice": "M1",
+      "lang": "ko",
+      "speed": 1.05,
+      "total_step": 8,
+      "max_chunk_length": 120,
+      "silence_duration": 0.3,
+      "text": "무료 TTS는 GPU 없이도 CPU만으로 로컬에서 작동합니다. 슈퍼토닉 3(Supertonic 3)는 선택한 언어(Language)와 음성 스타일(Voice style)을 기반으로 WAV 파일과 자막(Subtitle), 대본 로그(Script log)를 함께 생성합니다."
+    },
+    {
+      "id": "supertonic-3-intro-ko",
+      "title": "슈퍼토닉 3 소개(Supertonic 3 Intro)",
+      "description": "로컬 TTS 스튜디오(Local TTS Studio) 기능 소개용 한국어 대본",
+      "model": "supertonic-3",
+      "voice": "F1",
+      "lang": "ko",
+      "speed": 1.05,
+      "total_step": 10,
+      "max_chunk_length": 120,
+      "silence_duration": 0.25,
+      "text": "슈퍼토닉 3 로컬 TTS 스튜디오(Supertonic 3 Local TTS Studio)입니다. 텍스트(Text)를 입력하면 음성 파일(Audio file)과 함께 대본(Script), 입력 로그(Input log), SRT 자막(SRT subtitle), VTT 자막(VTT subtitle)을 자동으로 생성합니다. 자주 쓰는 설정은 사용자 설정(Custom) 1부터 5까지 저장해 둘 수 있습니다."
+    },
+    {
+      "id": "subtitle-workflow-ko",
+      "title": "자막 산출 워크플로(Subtitle Workflow)",
+      "description": "자막 파일(Subtitle file) 생성 과정을 설명하는 한국어 대본",
+      "model": "supertonic-3",
+      "voice": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_step": 8,
+      "max_chunk_length": 100,
+      "silence_duration": 0.2,
+      "text": "대본(Script)을 선택하거나 직접 작성한 뒤 생성(Generate) 버튼을 누르세요. 생성된 음성(Audio) 옆에는 편집용 대본 텍스트(Script text), 입력 로그(Input log), SRT와 VTT 자막 파일(Subtitle files)이 함께 저장됩니다. 자막 시간(Subtitle timing)은 전체 음성 길이에 맞춰 문장 단위로 자동 배분됩니다."
+    },
+    {
+      "id": "quick-bilingual-check-ko",
+      "title": "빠른 이중언어 확인(Quick Bilingual Check)",
+      "description": "음성(Voice)과 자막(Subtitle) 출력을 확인하는 짧은 한국어(English) 대본",
+      "model": "supertonic-3",
+      "voice": "F2",
+      "lang": "ko",
+      "speed": 1.1,
+      "total_step": 8,
+      "max_chunk_length": 180,
+      "silence_duration": 0.2,
+      "text": "이것은 슈퍼토닉 3 로컬 TTS 빠른 확인(Quick Supertonic 3 local TTS check)입니다. 앱(App)은 WAV 음성 파일(WAV audio file), 대본(Transcript), 입력 로그(Input log), SRT와 VTT 자막 파일(Subtitle files)을 함께 생성합니다."
+    },
+    {
+      "id": "long-story-sewing-basket-ko",
+      "title": "긴 사연 샘플 - 반짇고리(Long Story Sample)",
+      "description": "sample.txt에서 가져온 한국어 장문 낭독용 샘플 대본",
+      "model": "supertonic-3",
+      "voice": "F1",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_step": 8,
+      "max_chunk_length": 120,
+      "silence_duration": 0.35,
+      "whisper_refine": false,
+      "text_url": "/public/sample-long-story-ko.txt"
+    },
+    {
+      "id": "script-request-20260516-211351-62739d01",
+      "title": "세상 별난 사람들 - 정보형 낭독(Script Request)",
+      "description": "대본 요청함에서 생성한 '세상 미친놈' 주제의 3분 정보형 낭독 대본",
+      "model": "supertonic-3",
+      "voice": "M2",
+      "lang": "ko",
+      "speed": 1.05,
+      "total_step": 8,
+      "max_chunk_length": 120,
+      "silence_duration": 0.32,
+      "whisper_refine": false,
+      "text_url": "/public/script_request_20260516_211351_62739d01.txt"
+    },
+    {
+      "id": "script-request-20260516-215344-aedfde46",
+      "title": "스타크래프트가 유명한 이유(Why StarCraft Became Famous)",
+      "description": "대본 요청함에서 생성한 '스타크래프트 왜 유명한가?' 주제의 3분 정보형 낭독 대본",
+      "model": "supertonic-3",
+      "voice": "M2",
+      "lang": "ko",
+      "speed": 1.03,
+      "total_step": 8,
+      "max_chunk_length": 120,
+      "silence_duration": 0.32,
+      "whisper_refine": true,
+      "text_url": "/public/script_request_20260516_215344_aedfde46.txt"
+    }
+  ]
+}

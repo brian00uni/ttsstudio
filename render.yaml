@@ -1,0 +1,24 @@
+# Render Blueprint — Supertonic3 TTS backend (always-on inference server)
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: ttsstudio-backend
+    runtime: docker
+    repo: https://github.com/brian00uni/ttsstudio
+    dockerfilePath: supertonic3-local-tts/Dockerfile
+    dockerContext: supertonic3-local-tts
+    plan: starter        # 512MB may be tight for ONNX; bump to "standard" if OOM
+    region: singapore    # closest Render region to Korea
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: SUPERTONIC3_PUBLIC_MODE
+        value: "1"
+      - key: SUPERTONIC3_OUTPUT_DIR
+        value: /app/data
+      - key: HF_HOME
+        value: /app/.hf-cache
+    disk:
+      name: tts-cache
+      mountPath: /app/.hf-cache
+      sizeGB: 2          # persist downloaded model across restarts
