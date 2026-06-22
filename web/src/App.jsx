@@ -15,11 +15,29 @@ function Loading() {
   );
 }
 
+// Shown to withdrawn accounts; blocks app access and logs them out.
+function WithdrawnNotice() {
+  const { signOut } = useAuth();
+  return (
+    <div className="flex h-full items-center justify-center bg-slate-100 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
+        <div className="text-3xl">🚪</div>
+        <h2 className="mt-3 text-lg font-bold">탈퇴한 계정입니다</h2>
+        <p className="mt-2 text-sm text-slate-500">이 계정은 탈퇴 처리되어 이용할 수 없습니다.</p>
+        <button onClick={signOut} className="mt-5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+          로그아웃
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Requires a logged-in user; optionally requires admin.
 function Protected({ children, adminOnly }) {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, profile, loading } = useAuth();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
+  if (profile?.status === "withdrawn") return <WithdrawnNotice />;
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
   return <AppShell>{children}</AppShell>;
 }
