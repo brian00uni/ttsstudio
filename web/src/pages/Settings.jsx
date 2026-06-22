@@ -10,9 +10,13 @@ export default function Settings() {
   const [msg, setMsg] = useState("");
   const [ok, setOk] = useState(false);
 
+  // The shared general-purpose account cannot change its password.
+  const isSharedUser = profile?.username === "user" || user?.email === "user@ttsstudio.app";
+
   async function changePassword(e) {
     e.preventDefault();
     setMsg(""); setOk(false);
+    if (isSharedUser) { setMsg("공용 계정은 비밀번호를 변경할 수 없습니다."); return; }
     if (pw.length < 6) { setMsg("비밀번호는 6자 이상이어야 합니다."); return; }
     if (pw !== pw2) { setMsg("비밀번호가 일치하지 않습니다."); return; }
     setBusy(true);
@@ -43,23 +47,31 @@ export default function Settings() {
 
       <section className="rounded-2xl bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">비밀번호 변경</h2>
-        <form onSubmit={changePassword} className="space-y-3">
-          <input
-            type="password" placeholder="새 비밀번호 (6자 이상)"
-            value={pw} onChange={(e) => setPw(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
-          />
-          <input
-            type="password" placeholder="새 비밀번호 확인"
-            value={pw2} onChange={(e) => setPw2(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
-          />
-          <button disabled={busy}
-            className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
-            {busy ? "변경 중…" : "비밀번호 변경"}
-          </button>
-        </form>
-        {msg && <p className={`mt-3 text-xs ${ok ? "text-green-600" : "text-red-500"}`}>{msg}</p>}
+        {isSharedUser ? (
+          <p className="text-sm text-slate-500">
+            공용 계정(<span className="font-medium">user</span>)은 비밀번호를 변경할 수 없습니다.
+          </p>
+        ) : (
+          <>
+            <form onSubmit={changePassword} className="space-y-3">
+              <input
+                type="password" placeholder="새 비밀번호 (6자 이상)"
+                value={pw} onChange={(e) => setPw(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              />
+              <input
+                type="password" placeholder="새 비밀번호 확인"
+                value={pw2} onChange={(e) => setPw2(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              />
+              <button disabled={busy}
+                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
+                {busy ? "변경 중…" : "비밀번호 변경"}
+              </button>
+            </form>
+            {msg && <p className={`mt-3 text-xs ${ok ? "text-green-600" : "text-red-500"}`}>{msg}</p>}
+          </>
+        )}
       </section>
     </div>
   );

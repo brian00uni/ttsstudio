@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { supabase, toEmail } from "../lib/supabase";
 
+// Shared general-purpose account, prefilled as placeholders and used when the
+// login form is submitted empty (just press Enter).
+const DEFAULT_ID = "user";
+const DEFAULT_PW = "112233";
+
 export default function Login() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [identifier, setIdentifier] = useState("");
@@ -8,23 +13,31 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [ok, setOk] = useState(false);
+  // Placeholders clear on focus, restore on blur (when still empty).
+  const [idFocused, setIdFocused] = useState(false);
+  const [pwFocused, setPwFocused] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
     setMsg(""); setOk(false);
-    const email = toEmail(identifier);
-    if (!email || !password) { setMsg("아이디와 비밀번호를 입력하세요."); return; }
+
+    // Login mode: empty form -> sign in as the shared "user" account.
+    let id = identifier.trim();
+    let pw = password;
+    if (mode === "login" && !id && !pw) { id = DEFAULT_ID; pw = DEFAULT_PW; }
+
+    const email = toEmail(id);
+    if (!email || !pw) { setMsg("아이디와 비밀번호를 입력하세요."); return; }
     setBusy(true);
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
         if (error) throw error;
       } else {
-        const username = identifier.trim();
         const { data, error } = await supabase.auth.signUp({
           email,
-          password,
-          options: { data: { username } },
+          password: pw,
+          options: { data: { username: id } },
         });
         if (error) throw error;
         if (!data.session) {
@@ -51,17 +64,20 @@ export default function Login() {
         <form onSubmit={submit} className="space-y-3">
           <input
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
-            placeholder="아이디 또는 이메일"
+            placeholder={mode === "login" && !idFocused ? DEFAULT_ID : "아이디 또는 이메일"}
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            autoFocus
+            onFocus={() => setIdFocused(true)}
+            onBlur={() => setIdFocused(false)}
           />
           <input
             type="password"
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
-            placeholder="비밀번호"
+            placeholder={mode === "login" && !pwFocused ? DEFAULT_PW : "비밀번호"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setPwFocused(true)}
+            onBlur={() => setPwFocused(false)}
           />
           <button
             disabled={busy}
@@ -72,6 +88,11 @@ export default function Login() {
         </form>
         {msg && (
           <p className={`mt-3 text-center text-xs ${ok ? "text-green-600" : "text-red-500"}`}>{msg}</p>
+        )}
+        {mode === "login" && (
+          <p className="mt-3 text-center text-xs text-slate-400">
+            그냥 <span className="font-medium text-slate-500">Enter</span>를 누르면 공용 계정(user)으로 로그인됩니다.
+          </p>
         )}
         <div className="mt-5 text-center text-xs text-slate-500">
           {mode === "login" ? (
