@@ -1,76 +1,142 @@
-import { useEffect, useState } from "react";
-import { listMyGenerations, signedUrl, deleteGeneration } from "../lib/library";
+import { useEffect, useState, useCallback } from "react";
+import { listGenerationsPage, signedUrl, deleteGeneration } from "../lib/library";
+
+const PAGE_SIZE = 20;
 
 function fmtDate(s) {
-  return s ? new Date(s).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" }) : "-";
+  if (!s) return "-";
+  const d = new Date(s);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+function fmtTime(s) {
+  if (!s) return "-";
+  return new Date(s).toLocaleTimeString("ko-KR", { hour12: false });
+}
+function truncate(t) {
+  const s = t || "";
+  return s.length > 10 ? s.slice(0, 10) + "…" : s || "(내용 없음)";
+}
+
+function downloadSrt(row) {
+  const blob = new Blob([row.srt_text || ""], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const base = (row.audio_path || "subtitle").split("/").pop().replace(/\.\w+$/, "");
+  a.href = url; a.download = `${base}.srt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function History() {
   const [rows, setRows] = useState([]);
-  const [urls, setUrls] = useState({});
+  const [count, setCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [audioUrls, setAudioUrls] = useState({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  async function load() {
+  const load = useCallback(async (p) => {
     setLoading(true); setErr("");
     try {
-      const data = await listMyGenerations(100);
-      setRows(data);
+      const { rows, count } = await listGenerationsPage(p, PAGE_SIZE);
+      setRows(rows); setCount(count);
       const map = {};
-      await Promise.all(data.map(async (r) => { map[r.id] = await signedUrl(r.audio_path); }));
-      setUrls(map);
+      await Promise.all(rows.map(async (r) => { map[r.id] = await signedUrl(r.audio_path); }));
+      setAudioUrls(map);
     } catch (e) { setErr(e.message || String(e)); }
     finally { setLoading(false); }
-  }
-  useEffect(() => { load(); }, []);
+  }, []);
+
+  useEffect(() => { load(page); }, [page, load]);
 
   async function remove(row) {
     if (!confirm("이 음성을 삭제할까요?")) return;
     await deleteGeneration(row);
-    load();
+    // if last item on a page was removed, step back a page
+    if (rows.length === 1 && page > 0) setPage((p) => p - 1);
+    else load(page);
   }
 
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-4xl space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">TTS 생성 내역</h1>
-        <button onClick={load} className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-200">
-          새로고침
+        <button onClick={() => load(page)} title="새로고침"
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
+          ⟳
         </button>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-slate-400">불러오는 중…</p>
-      ) : err ? (
-        <p className="text-sm text-red-500">불러오기 실패: {err}</p>
-      ) : rows.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-sm text-slate-400 shadow-sm">
-          아직 생성한 음성이 없습니다. 음성을 생성하면 여기에 자동 저장됩니다.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {rows.map((r) => (
-            <div key={r.id} className="rounded-2xl bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <p className="line-clamp-2 text-sm text-slate-700">{r.text || "(제목 없음)"}</p>
-                <button onClick={() => remove(r)} className="shrink-0 text-xs font-medium text-slate-400 hover:text-red-600">
-                  삭제
-                </button>
-              </div>
-              <div className="mt-1 text-xs text-slate-400">
-                {[r.voice, r.lang, r.duration ? `${r.duration.toFixed(1)}초` : null, fmtDate(r.created_at)]
-                  .filter(Boolean).join(" · ")}
-              </div>
-              {urls[r.id] && (
-                <div className="mt-2 flex items-center gap-2">
-                  <audio controls src={urls[r.id]} className="h-9 flex-1" />
-                  <a href={urls[r.id]} download className="shrink-0 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-200">
-                    다운로드
-                  </a>
-                </div>
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs text-slate-400">
+              <tr>
+                <th className="px-4 py-3 font-medium">날짜</th>
+                <th className="px-4 py-3 font-medium">내용</th>
+                <th className="px-4 py-3 font-medium">생성시간</th>
+                <th className="px-4 py-3 font-medium text-center">오디오</th>
+                <th className="px-4 py-3 font-medium text-center">SRT</th>
+                <th className="px-4 py-3 font-medium text-center">삭제</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">불러오는 중…</td></tr>
+              ) : err ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-red-500">불러오기 실패: {err}</td></tr>
+              ) : rows.length === 0 ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">아직 생성한 음성이 없습니다.</td></tr>
+              ) : (
+                rows.map((r) => (
+                  <tr key={r.id} className="border-t border-slate-50 hover:bg-slate-50">
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDate(r.created_at)}</td>
+                    <td className="px-4 py-3" title={r.text}>{truncate(r.text)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtTime(r.created_at)}</td>
+                    <td className="px-4 py-3 text-center">
+                      {audioUrls[r.id] ? (
+                        <a href={audioUrls[r.id]} download title="오디오 다운로드"
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">
+                          ⬇ MP3
+                        </a>
+                      ) : <span className="text-xs text-slate-300">-</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {r.srt_text ? (
+                        <button onClick={() => downloadSrt(r)} title="SRT 다운로드"
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">
+                          ⬇ SRT
+                        </button>
+                      ) : <span className="text-xs text-slate-300">-</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button onClick={() => remove(r)} title="삭제"
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
+                        🗑
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
-            </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {count > PAGE_SIZE && (
+        <div className="flex items-center justify-center gap-1">
+          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}
+            className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40">‹</button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button key={i} onClick={() => setPage(i)}
+              className={`min-w-8 rounded-lg px-3 py-1.5 text-sm ${i === page ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+              {i + 1}
+            </button>
           ))}
+          <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}
+            className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40">›</button>
         </div>
       )}
     </div>
