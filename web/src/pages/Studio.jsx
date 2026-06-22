@@ -49,9 +49,14 @@ export default function Studio() {
   const [status, setStatus] = useState("");
   const [samples, setSamples] = useState([]);
   const [sampleId, setSampleId] = useState("");
+  // 대본 요청 (Script request)
+  const [req, setReq] = useState({ topic: "", tone: "차분함", length: "3분", audience: "일반 청취자", expression_tag_mode: "none", notes: "" });
+  const [reqMsg, setReqMsg] = useState("");
+  const [reqBusy, setReqBusy] = useState(false);
   // 사용자 설정 (presets)
   const [slot, setSlot] = useState("1");
   const [slotStatus, setSlotStatus] = useState("");
+  const [presetVer, setPresetVer] = useState(0);
   const [playing, setPlaying] = useState(false);
   const sampleRef = useRef(null);
   const fileRef = useRef(null);
@@ -80,6 +85,7 @@ export default function Studio() {
   function savePreset() {
     localStorage.setItem(PRESET_PREFIX + slot, JSON.stringify({ saved_at: new Date().toISOString(), settings: currentSettings() }));
     localStorage.setItem(PRESET_LAST, slot);
+    setPresetVer((v) => v + 1);
     setSlotStatus(statusFor(slot));
   }
   function loadPreset() {
@@ -91,7 +97,37 @@ export default function Studio() {
   }
   function clearPreset() {
     localStorage.removeItem(PRESET_PREFIX + slot);
+    setPresetVer((v) => v + 1);
     setSlotStatus(`설정 ${slot}: 비어 있음`);
+  }
+  // Short label for the slot dropdown showing saved date or empty.
+  function slotLabel(s) {
+    const raw = localStorage.getItem(PRESET_PREFIX + s);
+    if (!raw) return `설정 ${s} · 비어있음`;
+    try {
+      const at = JSON.parse(raw).saved_at;
+      const d = at ? new Date(at) : null;
+      const short = d ? `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : "저장됨";
+      return `설정 ${s} · ${short}`;
+    } catch { return `설정 ${s} · 저장됨`; }
+  }
+
+  // Save a script-generation request to the backend (legacy 대본 요청).
+  async function submitRequest() {
+    if (!req.topic.trim()) { setReqMsg("주제를 먼저 입력하세요."); return; }
+    setReqBusy(true); setReqMsg("대본 요청 저장 중…");
+    try {
+      const res = await fetch("/api/script-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...req, language: lang }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setReqMsg(`저장됨: ${data.request?.id || "완료"}`);
+    } catch (e) {
+      setReqMsg("저장 실패: " + (e.message || e));
+    } finally { setReqBusy(false); }
   }
 
   // Show the selected slot's saved status whenever the slot changes.
@@ -112,12 +148,13 @@ export default function Studio() {
   }, [isSharedUser]);
 
   // Load sample scripts for "대본 가져오기".
-  useEffect(() => {
-    fetch("/public/scripts.json", { cache: "no-store" })
+  function loadSamples() {
+    return fetch("/public/scripts.json", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setSamples(d.scripts || []))
       .catch(() => setSamples([]));
-  }, []);
+  }
+  useEffect(() => { loadSamples(); }, []);
 
   function toggleSample() {
     const a = sampleRef.current;
@@ -247,14 +284,57 @@ export default function Studio() {
           </div>
         )}
         {tab === "sample" && (
-          <div className="mb-3">
-            <select value={sampleId} onChange={onPickSample}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
-              <option value="">샘플 대본을 선택하세요…</option>
-              {samples.map((s) => (
-                <option key={s.id} value={s.id}>{s.title}</option>
-              ))}
-            </select>
+          <div className="mb-3 space-y-4">
+            {/* 대본 요청 (Script request) */}
+            <div className="rounded-lg border border-slate-200 p-3">
+              <div className="mb-2 text-xs font-semibold text-slate-600">대본 요청(Script request)</div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input value={req.topic} onChange={(e) => setReq({ ...req, topic: e.target.value })}
+                  placeholder="대본 요청 주제 (예: 30대 직장인을 위한 5분 위로 낭독문)"
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 sm:col-span-2" />
+                <select value={req.tone} onChange={(e) => setReq({ ...req, tone: e.target.value })}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none">
+                  {["차분함", "따뜻함", "정보형", "몰입형", "유쾌함"].map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input value={req.length} onChange={(e) => setReq({ ...req, length: e.target.value })}
+                  placeholder="분량 (예: 3분)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+                <input value={req.audience} onChange={(e) => setReq({ ...req, audience: e.target.value })}
+                  placeholder="대상 (예: 일반 청취자)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+                <select value={req.expression_tag_mode} onChange={(e) => setReq({ ...req, expression_tag_mode: e.target.value })}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none">
+                  <option value="none">표현 태그 없음(None)</option>
+                  <option value="use">표현 태그 사용(Use)</option>
+                </select>
+                <input value={req.notes} onChange={(e) => setReq({ ...req, notes: e.target.value })}
+                  placeholder="추가 요청 (포함 키워드, 금지 표현, 분위기 등)"
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 sm:col-span-2" />
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button onClick={submitRequest} disabled={reqBusy}
+                  className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-60">
+                  대본 요청 저장
+                </button>
+                <span className="text-xs text-slate-400">{reqMsg || "AI에게 넘길 요청 파일을 저장합니다."}</span>
+              </div>
+            </div>
+
+            {/* 샘플 대본 (Sample script) */}
+            <div>
+              <div className="mb-1 text-xs font-semibold text-slate-600">샘플 대본(Sample script)</div>
+              <div className="flex gap-2">
+                <select value={sampleId} onChange={onPickSample}
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+                  <option value="">샘플 대본을 선택하세요…</option>
+                  {samples.map((s) => (
+                    <option key={s.id} value={s.id}>{s.title}</option>
+                  ))}
+                </select>
+                <button onClick={() => loadSamples()}
+                  className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+                  새로고침
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -309,9 +389,9 @@ export default function Studio() {
         <div className="mb-4 rounded-xl bg-slate-50 p-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-slate-500">사용자 설정(Custom)</span>
-            <select value={slot} onChange={(e) => setSlot(e.target.value)}
+            <select key={presetVer} value={slot} onChange={(e) => setSlot(e.target.value)}
               className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs outline-none">
-              {PRESET_SLOTS.map((s) => <option key={s} value={s}>설정 {s} (Custom {s})</option>)}
+              {PRESET_SLOTS.map((s) => <option key={s} value={s}>{slotLabel(s)}</option>)}
             </select>
             <button onClick={loadPreset} className="rounded-md bg-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-300">불러오기</button>
             <button onClick={savePreset} className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700">저장</button>
