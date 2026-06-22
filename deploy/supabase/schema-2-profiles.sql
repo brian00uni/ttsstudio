@@ -74,7 +74,7 @@ returns table (
 begin
   if not public.is_admin() then raise exception 'not authorized'; end if;
   return query
-    select p.id, p.username, u.email, p.is_admin, p.status, p.created_at, p.last_login,
+    select p.id, p.username, u.email::text, p.is_admin, p.status, p.created_at, p.last_login,
            coalesce(g.cnt, 0)::bigint, coalesce(g.dur, 0)::double precision
     from public.profiles p
     join auth.users u on u.id = p.id
