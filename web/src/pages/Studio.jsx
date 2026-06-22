@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
-import { VOICES, sampleUrl, synthesize } from "../lib/tts";
+import { VOICES, LANGS, sampleUrl, synthesize } from "../lib/tts";
 import { saveGeneration } from "../lib/library";
 
 const TABS = [
@@ -8,6 +8,10 @@ const TABS = [
   { id: "file", label: "로컬 TXT" },
   { id: "sample", label: "대본 가져오기" },
 ];
+
+const PRESET_PREFIX = "ttsstudio-preset-";
+const PRESET_LAST = "ttsstudio-preset-last";
+const PRESET_SLOTS = ["1", "2", "3", "4", "5"];
 
 export default function Studio() {
   const { user, profile } = useAuth();
@@ -17,14 +21,59 @@ export default function Studio() {
   const [tab, setTab] = useState("manual");
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("F1");
+  const [lang, setLang] = useState("ko");
   const [speed, setSpeed] = useState(1.05);
+  const [totalStep, setTotalStep] = useState(8);
+  const [maxChunk, setMaxChunk] = useState("");      // "" = auto
+  const [silence, setSilence] = useState(0.3);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState("");
   const [samples, setSamples] = useState([]);
   const [sampleId, setSampleId] = useState("");
+  // 사용자 설정 (presets)
+  const [slot, setSlot] = useState("1");
+  const [presetMsg, setPresetMsg] = useState("");
   const sampleRef = useRef(null);
   const fileRef = useRef(null);
+
+  function currentSettings() {
+    return { voice, lang, speed, total_step: totalStep, max_chunk_length: maxChunk, silence_duration: silence };
+  }
+  function applySettings(s) {
+    if (!s) return;
+    if (s.voice) setVoice(s.voice);
+    if (s.lang) setLang(s.lang);
+    if (s.speed != null) setSpeed(Number(s.speed));
+    if (s.total_step != null) setTotalStep(Number(s.total_step));
+    setMaxChunk(s.max_chunk_length ?? "");
+    if (s.silence_duration != null) setSilence(Number(s.silence_duration));
+  }
+  function savePreset() {
+    localStorage.setItem(PRESET_PREFIX + slot, JSON.stringify(currentSettings()));
+    localStorage.setItem(PRESET_LAST, slot);
+    setPresetMsg(`설정 ${slot} 저장됨`);
+  }
+  function loadPreset() {
+    const raw = localStorage.getItem(PRESET_PREFIX + slot);
+    if (!raw) { setPresetMsg(`설정 ${slot}: 비어 있음`); return; }
+    applySettings(JSON.parse(raw));
+    localStorage.setItem(PRESET_LAST, slot);
+    setPresetMsg(`설정 ${slot} 불러옴`);
+  }
+  function clearPreset() {
+    localStorage.removeItem(PRESET_PREFIX + slot);
+    setPresetMsg(`설정 ${slot} 삭제됨`);
+  }
+
+  // Auto-load the last used preset on entry.
+  useEffect(() => {
+    const last = localStorage.getItem(PRESET_LAST);
+    if (last) {
+      const raw = localStorage.getItem(PRESET_PREFIX + last);
+      if (raw) { setSlot(last); applySettings(JSON.parse(raw)); setPresetMsg(`설정 ${last} 자동 불러옴`); }
+    }
+  }, []);
 
   useEffect(() => {
     if (isSharedUser && !sessionStorage.getItem("tts_share_notice")) {
@@ -64,7 +113,11 @@ export default function Studio() {
     if (s) {
       setText(s.text || "");
       if (s.voice && VOICES.some((v) => v.id === s.voice)) setVoice(s.voice);
+      if (s.lang) setLang(s.lang);
       if (s.speed) setSpeed(Number(s.speed));
+      if (s.total_step != null) setTotalStep(Number(s.total_step));
+      if (s.max_chunk_length != null) setMaxChunk(s.max_chunk_length);
+      if (s.silence_duration != null) setSilence(Number(s.silence_duration));
       setStatus(`'${s.title}' 대본 불러옴`);
     }
   }
@@ -72,7 +125,16 @@ export default function Studio() {
   async function generate() {
     if (!text.trim()) { setStatus("텍스트를 입력하세요."); return; }
     setBusy(true); setStatus("음성 생성 중… (처음엔 서버 깨우는 데 시간이 걸릴 수 있어요)"); setResult(null);
-    const payload = { text: text.trim(), voice, lang: "ko", speed: Number(speed), total_step: 8 };
+    const payload = {
+      text: text.trim(),
+      voice,
+      lang,
+      speed: Number(speed),
+      total_step: Number(totalStep),
+      silence_duration: Number(silence),
+    };
+    const mc = parseInt(maxChunk, 10);
+    if (!Number.isNaN(mc)) payload.max_chunk_length = mc;
     try {
       const res = await synthesize(payload);
       setResult(res);
@@ -198,16 +260,39 @@ export default function Studio() {
 
       {/* 설정값 */}
       <section className="rounded-2xl bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">설정</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-700">설정</h2>
+          {/* 사용자 설정 (프리셋) */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-400">사용자 설정</span>
+            <select value={slot} onChange={(e) => setSlot(e.target.value)}
+              className="rounded-md border border-slate-300 px-2 py-1 text-xs outline-none">
+              {PRESET_SLOTS.map((s) => <option key={s} value={s}>설정 {s}</option>)}
+            </select>
+            <button onClick={savePreset} className="rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700">저장</button>
+            <button onClick={loadPreset} className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">불러오기</button>
+            <button onClick={clearPreset} className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">삭제</button>
+          </div>
+        </div>
+        {presetMsg && <p className="mb-3 text-right text-xs text-slate-400">{presetMsg}</p>}
+
         <div className="grid gap-4 sm:grid-cols-2">
+          {/* 목소리 */}
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500">목소리</label>
             <div className="flex gap-2">
               <select value={voice} onChange={(e) => setVoice(e.target.value)}
                 className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
-                {VOICES.map((v) => (
-                  <option key={v.id} value={v.id}>{v.label}</option>
-                ))}
+                <optgroup label="남성">
+                  {VOICES.filter((v) => v.id.startsWith("M")).map((v) => (
+                    <option key={v.id} value={v.id}>{v.label}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="여성">
+                  {VOICES.filter((v) => v.id.startsWith("F")).map((v) => (
+                    <option key={v.id} value={v.id}>{v.label}</option>
+                  ))}
+                </optgroup>
               </select>
               <button onClick={playSample}
                 className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200"
@@ -216,10 +301,45 @@ export default function Studio() {
               </button>
             </div>
           </div>
+
+          {/* 언어 */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">언어</label>
+            <select value={lang} onChange={(e) => setLang(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500">
+              {LANGS.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
+            </select>
+          </div>
+
+          {/* 속도 */}
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500">속도 ({speed.toFixed(2)}x)</label>
             <input type="range" min="0.7" max="2.0" step="0.05" value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))} className="mt-2 w-full" />
+          </div>
+
+          {/* 단계 */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">단계 (Steps, 1~100)</label>
+            <input type="number" min="1" max="100" step="1" value={totalStep}
+              onChange={(e) => setTotalStep(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+          </div>
+
+          {/* 최대 청크 */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">최대 청크 (비우면 자동)</label>
+            <input type="number" min="10" max="100000" step="10" value={maxChunk}
+              placeholder="자동" onChange={(e) => setMaxChunk(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+          </div>
+
+          {/* 청크 무음 */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">청크 무음 (초, 0~30)</label>
+            <input type="number" min="0" max="30" step="0.05" value={silence}
+              onChange={(e) => setSilence(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
           </div>
         </div>
         <audio ref={sampleRef} className="hidden" />

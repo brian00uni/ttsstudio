@@ -1,17 +1,42 @@
 // TTS API client — talks to the HF Space backend via same-origin /api proxy
 // (Vercel rewrites in prod, Vite proxy in dev).
 
+// Friendly Korean persona names with a face icon per voice id.
 export const VOICES = [
-  { id: "M1", label: "남성 M1" },
-  { id: "M2", label: "남성 M2" },
-  { id: "M3", label: "남성 M3" },
-  { id: "M4", label: "남성 M4" },
-  { id: "M5", label: "남성 M5" },
-  { id: "F1", label: "여성 F1" },
-  { id: "F2", label: "여성 F2" },
-  { id: "F3", label: "여성 F3" },
-  { id: "F4", label: "여성 F4" },
-  { id: "F5", label: "여성 F5" },
+  { id: "M1", name: "민호", icon: "👨" },
+  { id: "M2", name: "경식", icon: "👨" },
+  { id: "M3", name: "영수", icon: "👨" },
+  { id: "M4", name: "상철", icon: "👨" },
+  { id: "M5", name: "동훈", icon: "👨" },
+  { id: "F1", name: "영숙", icon: "👩" },
+  { id: "F2", name: "옥순", icon: "👩" },
+  { id: "F3", name: "영자", icon: "👩" },
+  { id: "F4", name: "미숙", icon: "👩" },
+  { id: "F5", name: "정희", icon: "👩" },
+].map((v) => ({ ...v, label: `${v.icon} ${v.name}` }));
+
+export function voiceLabel(id) {
+  const v = VOICES.find((x) => x.id === id);
+  return v ? v.label : id;
+}
+
+// Languages supported by the backend (subset of the engine list, common first).
+export const LANGS = [
+  { code: "ko", name: "한국어" },
+  { code: "en", name: "English" },
+  { code: "ja", name: "日本語" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
+  { code: "de", name: "Deutsch" },
+  { code: "it", name: "Italiano" },
+  { code: "pt", name: "Português" },
+  { code: "ru", name: "Русский" },
+  { code: "hi", name: "हिन्दी" },
+  { code: "id", name: "Indonesia" },
+  { code: "vi", name: "Tiếng Việt" },
+  { code: "tr", name: "Türkçe" },
+  { code: "pl", name: "Polski" },
+  { code: "nl", name: "Nederlands" },
 ];
 
 export function sampleUrl(voice) {
