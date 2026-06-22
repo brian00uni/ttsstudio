@@ -18,10 +18,13 @@ HF_README="$REPO_ROOT/deploy/hf-space/README.md"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-# Authenticate git pushes to HF using the token stored by `hf auth login`.
-HF="$BACKEND/.venv/bin/hf"
-TOKEN="$("$HF" auth token 2>/dev/null || true)"
-[ -n "$TOKEN" ] || { echo "No HF token. Run: $HF auth login"; exit 1; }
+# Authenticate git pushes to HF. In CI, set HF_TOKEN; locally it falls back to
+# the token stored by `hf auth login`.
+TOKEN="${HF_TOKEN:-}"
+if [ -z "$TOKEN" ] && [ -x "$BACKEND/.venv/bin/hf" ]; then
+  TOKEN="$("$BACKEND/.venv/bin/hf" auth token 2>/dev/null || true)"
+fi
+[ -n "$TOKEN" ] || { echo "No HF token. Set HF_TOKEN env or run: hf auth login"; exit 1; }
 REMOTE="https://user:${TOKEN}@huggingface.co/spaces/$SPACE"
 
 echo "[1/4] Cloning Space repo: https://huggingface.co/spaces/$SPACE"
