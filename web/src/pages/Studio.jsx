@@ -73,13 +73,32 @@ export default function Studio() {
     setMaxChunk(s.max_chunk_length ?? "");
     if (s.silence_duration != null) setSilence(Number(s.silence_duration));
   }
-  // Status line for a slot: "저장됨 {date}" or "비어 있음".
+  // Short "value(한글)" label for an option value, e.g. "1.15(경쾌함)".
+  function optShort(opts, value) {
+    const v = String(value ?? "");
+    const found = opts.find(([val]) => val === v);
+    if (!found) return v === "" ? "자동(auto)" : v;
+    const lbl = found[1];
+    if (lbl.includes(" - ")) {
+      const [left, rest] = lbl.split(" - ");
+      return `${left}(${rest.split("(")[0].trim()})`;
+    }
+    return lbl;
+  }
+  function summarize(s) {
+    if (!s) return "";
+    const langName = LANGS.find((l) => l.code === s.lang)?.name || s.lang;
+    return `[${langName} / ${optShort(SPEED_OPTS, s.speed)} / ${optShort(CHUNK_OPTS, s.max_chunk_length)} / ${optShort(STEP_OPTS, s.total_step)} / ${optShort(SILENCE_OPTS, s.silence_duration)}]`;
+  }
+
+  // Status line for a slot: "저장됨 {date} [요약]" or "비어 있음".
   function statusFor(s) {
     const raw = localStorage.getItem(PRESET_PREFIX + s);
     if (!raw) return `설정 ${s}: 비어 있음`;
     try {
-      const at = JSON.parse(raw).saved_at;
-      return `설정 ${s}: 저장됨 ${at ? new Date(at).toLocaleString("ko-KR") : ""}`;
+      const obj = JSON.parse(raw);
+      const at = obj.saved_at ? new Date(obj.saved_at).toLocaleString("ko-KR") : "";
+      return `설정 ${s}: 저장됨 ${at} ${summarize(obj.settings)}`;
     } catch { return `설정 ${s}: 저장됨`; }
   }
   function savePreset() {
@@ -93,7 +112,7 @@ export default function Studio() {
     if (!raw) { setSlotStatus(`설정 ${slot}: 비어 있음`); return; }
     applySettings(JSON.parse(raw).settings);
     localStorage.setItem(PRESET_LAST, slot);
-    setSlotStatus(`설정 ${slot} 불러옴`);
+    setSlotStatus(statusFor(slot));
   }
   function clearPreset() {
     localStorage.removeItem(PRESET_PREFIX + slot);
