@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "../lib/AuthContext.jsx";
+import VoiceSelect from "../components/VoiceSelect.jsx";
 import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleUrl, synthesize, voiceImg, voiceName } from "../lib/tts";
 
 // A <select> whose options are presets; falls back to a "프리셋 외 값(custom)"
@@ -449,22 +450,9 @@ export default function Studio() {
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500">목소리</label>
             <div className="flex items-center gap-2">
-              <img src={voiceImg(voice)} alt={voiceName(voice)} className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
-              <select value={voice} onChange={(e) => setVoice(e.target.value)}
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
-                <optgroup label="남성">
-                  {VOICES.filter((v) => v.id.startsWith("M")).map((v) => (
-                    <option key={v.id} value={v.id}>{v.label}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="여성">
-                  {VOICES.filter((v) => v.id.startsWith("F")).map((v) => (
-                    <option key={v.id} value={v.id}>{v.label}</option>
-                  ))}
-                </optgroup>
-              </select>
+              <VoiceSelect value={voice} onChange={setVoice} className="flex-1" />
               <button onClick={toggleSample}
-                className={`rounded-lg px-3 py-2 text-sm font-medium ${playing ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium ${playing ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                 title={playing ? "정지" : "샘플 듣기"}>
                 {playing ? "⏹ 정지" : "▶ 샘플"}
               </button>
