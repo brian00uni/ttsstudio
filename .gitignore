@@ -33,3 +33,5 @@ Thumbs.db
 # Vercel build output
 web-dist/
 .vercel
+web/dist/
+web/node_modules/
