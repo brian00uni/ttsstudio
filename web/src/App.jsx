@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useAuth } from "./lib/AuthContext.jsx";
 import AppShell from "./components/AppShell.jsx";
 import Login from "./pages/Login.jsx";
@@ -9,8 +10,19 @@ import Admin from "./pages/Admin.jsx";
 
 function Loading() {
   return (
-    <div className="flex h-full items-center justify-center text-slate-400">
-      불러오는 중…
+    <div className="flex h-full flex-col items-center justify-center gap-2">
+      <DotLottieReact
+        src="/assets/images/tts-loading.lottie"
+        autoplay
+        loop
+        style={{ width: 160, height: 160 }}
+      />
+      <DotLottieReact
+        src="/assets/images/tts-txt-loading.lottie"
+        autoplay
+        loop
+        style={{ width: 200, height: 60 }}
+      />
     </div>
   );
 }

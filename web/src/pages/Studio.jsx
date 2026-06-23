@@ -267,14 +267,14 @@ export default function Studio() {
           <div className="flex h-64 w-64 items-center justify-center rounded-full bg-white shadow-2xl">
             <DotLottieReact
               key={lottie}
-              src={lottie === "loading" ? "/lottie/tts-progress.lottie" : "/lottie/tts-success.lottie"}
+              src={lottie === "loading" ? "/lottie/tts-ai-loading.lottie" : "/lottie/tts-success.lottie"}
               autoplay
               loop={lottie === "loading"}
               style={{ width: 200, height: 200 }}
             />
           </div>
           <p className="mt-4 text-sm font-medium text-white">
-            {lottie === "loading" ? "음성 생성 중…" : "완료!"}
+            {lottie === "loading" ? "음성 생성 중" : "완료!"}
           </p>
         </div>
       )}
@@ -314,9 +314,8 @@ export default function Studio() {
         <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-1">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                tab === t.id ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}>
+              className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${tab === t.id ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}>
               {t.label}
             </button>
           ))}
