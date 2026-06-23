@@ -17,7 +17,7 @@ function VisitCounter() {
   const fmt = (n) => (counts ? n.toLocaleString() : "—");
 
   return (
-    <div className="mb-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
       <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-400">
         <span>👣</span> 사이트 방문
       </div>
@@ -116,8 +116,10 @@ export default function AppShell({ children }) {
           <NavItem to="/history" label="TTS 생성 내역" icon="🗂️" />
         </nav>
         <div className="mt-auto pt-4">
-          <VisitCounter />
           <ProfileMenu />
+          <div className="mt-2">
+            <VisitCounter />
+          </div>
         </div>
       </aside>
 
