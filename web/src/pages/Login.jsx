@@ -57,9 +57,8 @@ export default function Login() {
     <div className="flex h-full items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="text-3xl">🎙️</div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight">ttsstudio</h1>
-          <p className="mt-1 text-sm text-slate-500">AI 음성으로 콘텐츠를 만들어 보세요</p>
+          <img src="/tts-studio-logo.png" alt="TTS STUDIO" className="mx-auto w-48 max-w-full" />
+          <p className="mt-3 text-sm text-slate-500">AI 음성으로 콘텐츠를 만들어 보세요</p>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <input

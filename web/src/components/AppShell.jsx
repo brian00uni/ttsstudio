@@ -106,9 +106,8 @@ export default function AppShell({ children }) {
     <div className="flex h-full">
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-5 md:flex">
-        <div className="mb-6 flex items-center gap-2 px-2">
-          <span className="text-xl">🎙️</span>
-          <span className="text-lg font-bold tracking-tight">ttsstudio</span>
+        <div className="mb-6 px-2">
+          <img src="/tts-studio-logo.png" alt="TTS STUDIO" className="w-44 max-w-full" />
         </div>
         <nav className="flex flex-col gap-1">
           {isAdmin && <NavItem to="/admin" label="관리자 대시보드" icon="📊" />}
@@ -126,7 +125,7 @@ export default function AppShell({ children }) {
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
-          <div className="text-sm font-bold md:hidden">🎙️ ttsstudio</div>
+          <img src="/tts-studio-logo.png" alt="TTS STUDIO" className="h-7 w-auto md:hidden" />
           <div className="ml-auto flex items-center gap-2">
             {isAdmin && (
               <a
