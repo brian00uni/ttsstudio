@@ -416,7 +416,7 @@ export default function Studio() {
                 </a>
               )}
               {srtUrl && (
-                <a href={srtUrl} download className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200">
+                <a href={srtUrl} download className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
                   자막(SRT)
                 </a>
               )}
