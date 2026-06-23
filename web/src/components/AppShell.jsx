@@ -113,6 +113,7 @@ export default function AppShell({ children }) {
           {isAdmin && <NavItem to="/admin" label="관리자 대시보드" icon="📊" />}
           <NavItem to="/studio" label="음성 생성" icon="🔊" />
           <NavItem to="/history" label="TTS 생성 내역" icon="🗂️" />
+          <NavItem to="/license" label="라이선스" icon="📄" />
         </nav>
         <div className="mt-auto pt-4">
           <ProfileMenu />
