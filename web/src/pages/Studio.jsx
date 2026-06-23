@@ -264,7 +264,7 @@ export default function Studio() {
       {/* TTS 생성 로딩/완료 Lottie 오버레이 */}
       {lottie !== "idle" && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/55 backdrop-blur-sm">
-          <div className="flex h-64 w-64 items-center justify-center rounded-full bg-white shadow-2xl">
+          <div className={`flex h-64 w-64 items-center justify-center bg-white shadow-2xl transition-all duration-500 ease-out ${lottie === "loading" ? "rounded-3xl" : "rounded-full"}`}>
             <DotLottieReact
               key={lottie}
               src={lottie === "loading" ? "/lottie/tts-ai-loading.lottie" : "/lottie/tts-success.lottie"}
