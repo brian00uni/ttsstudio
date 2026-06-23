@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { listGenerationsPage, signedUrl, deleteGeneration } from "../lib/library";
-import { voiceLabel } from "../lib/tts";
+import { voiceImg, voiceName } from "../lib/tts";
 
 const PAGE_SIZE = 20;
 
@@ -162,9 +162,15 @@ export default function History() {
             </div>
 
             <div className="flex-1 overflow-auto p-5">
+              {selected.voice && voiceImg(selected.voice) && (
+                <div className="mb-3 flex items-center gap-2">
+                  <img src={voiceImg(selected.voice)} alt={voiceName(selected.voice)}
+                    className="h-9 w-9 rounded-full object-cover ring-1 ring-slate-200" />
+                  <span className="text-sm font-semibold text-slate-800">{voiceName(selected.voice)}</span>
+                </div>
+              )}
               <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                 <span>{fmtDate(selected.created_at)}</span>
-                {selected.voice && <span>음성: {voiceLabel(selected.voice)}</span>}
                 {selected.lang && <span>언어: {selected.lang}</span>}
                 <span>길이: {fmtDuration(selected.duration)}</span>
               </div>
