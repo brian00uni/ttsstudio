@@ -6,12 +6,26 @@ import { VOICES, LANGS, SPEED_OPTS, STEP_OPTS, CHUNK_OPTS, SILENCE_OPTS, sampleU
 
 // A <select> whose options are presets; falls back to a "프리셋 외 값(custom)"
 // option when the current value isn't one of the presets.
-function PresetSelect({ label, value, options, onChange }) {
+function InfoLabel({ text, onInfo }) {
+  return (
+    <label className="mb-1 flex items-center gap-1 text-xs font-medium text-slate-500">
+      <span>{text}</span>
+      {onInfo && (
+        <button type="button" onClick={onInfo} aria-label={`${text} 설명 보기`}
+          className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold leading-none text-slate-400 transition-colors hover:border-brand-500 hover:text-brand-600">
+          !
+        </button>
+      )}
+    </label>
+  );
+}
+
+function PresetSelect({ label, value, options, onChange, onInfo }) {
   const v = String(value);
   const known = options.some(([val]) => val === v);
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-slate-500">{label}</label>
+      <InfoLabel text={label} onInfo={onInfo} />
       <select value={known ? v : "__custom__"}
         onChange={(e) => { if (e.target.value !== "__custom__") onChange(e.target.value); }}
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
@@ -32,6 +46,69 @@ const TABS = [
 const PRESET_PREFIX = "ttsstudio-preset-";
 const PRESET_LAST = "ttsstudio-preset-last";
 const PRESET_SLOTS = ["1", "2", "3", "4", "5"];
+
+const HELP = {
+  voice: {
+    title: "목소리(Voice)",
+    intro: "기본 제공 음성 프리셋입니다. 대본의 분위기와 목적에 맞춰 음색을 고르는 값입니다.",
+    bullets: [
+      "M 계열은 남성형, F 계열은 여성형 음색 프리셋입니다.",
+      "같은 설정이라도 음성마다 말투, 속도감, 발음 느낌이 다르게 들릴 수 있습니다.",
+      "최종 결과를 만들기 전에 같은 문장으로 2~3개 음성을 비교해보는 것이 좋습니다.",
+    ],
+    tip: "프리셋(Preset): M1~M5, F1~F5",
+  },
+  language: {
+    title: "언어(Language)",
+    intro: "대본을 어떤 언어 발음 규칙으로 읽을지 정합니다. 선택값은 발음, 억양, 문자 해석 방식에 영향을 줍니다.",
+    bullets: [
+      "한국어 대본은 한국어(Korean) - ko를 직접 선택하는 편이 안정적입니다.",
+      "영어 문장이 섞인 한국어 대본은 ko로 두고 괄호 영어를 짧게 넣으면 자연스럽게 확인하기 좋습니다.",
+      "자동(auto)은 편하지만 대본이 짧거나 여러 언어가 섞이면 의도와 다르게 해석될 수 있습니다.",
+    ],
+    tip: "한국어 대본(Recommended): 한국어(Korean) - ko",
+  },
+  speed: {
+    title: "속도(Speed)",
+    intro: "음성이 읽히는 빠르기를 조절합니다. 실제 음색과 발음 안정성에도 영향을 주므로, 대본 성격에 맞춰 조금씩 바꾸는 값입니다.",
+    bullets: [
+      "낮은 값은 차분하고 또렷하지만 전체 길이가 길어집니다.",
+      "높은 값은 빠르고 경쾌하지만 발음이 뭉개지거나 숨이 부족하게 들릴 수 있습니다.",
+      "뉴스/안내문은 1.00~1.10, 짧은 알림은 1.10~1.25 정도가 쓰기 좋습니다.",
+    ],
+    tip: "권장(Recommended): 1.00~1.15, 기본(Default): 1.05",
+  },
+  steps: {
+    title: "단계(Steps)",
+    intro: "생성 과정에서 모델이 음성을 다듬는 반복 횟수입니다. 품질과 생성 시간 사이를 조절하는 핵심 값입니다.",
+    bullets: [
+      "낮은 값은 빠르게 미리 듣기 할 때 좋지만 억양이나 발음이 덜 안정적일 수 있습니다.",
+      "높은 값은 더 매끄러운 결과를 기대할 수 있지만 CPU 환경에서는 생성 시간이 늘어납니다.",
+      "긴 대본을 여러 번 테스트할 때는 8로 확인하고, 최종본은 10~12로 올리는 방식이 편합니다.",
+    ],
+    tip: "권장(Recommended): 빠른 확인 8, 품질 확인 10~12",
+  },
+  chunk: {
+    title: "최대 청크(Max chunk)",
+    intro: "긴 대본을 한 번에 처리할 텍스트 묶음 길이입니다. 길게 말할 때 끊김과 안정성을 조절합니다.",
+    bullets: [
+      "짧은 청크는 메모리와 발음 안정성에 유리하지만 문장 사이 멈춤이 자주 생길 수 있습니다.",
+      "긴 청크는 흐름이 자연스럽지만 너무 길면 반복, 누락, 처리 지연이 생길 수 있습니다.",
+      "한국어/일본어처럼 문장 단위가 짧은 대본은 100~150부터 확인하는 편이 좋습니다.",
+    ],
+    tip: "권장(Recommended): 한국어/일본어 120, 일반 장문 300",
+  },
+  silence: {
+    title: "무음(Chunk silence)",
+    intro: "분할된 대본 조각 사이에 넣을 쉬는 시간입니다. 대본이 여러 조각으로 나뉠 때 문장 사이 호흡을 만듭니다.",
+    bullets: [
+      "0에 가까우면 빠르게 이어지지만 문장 전환이 갑작스럽게 들릴 수 있습니다.",
+      "0.3초 전후는 일반 안내문이나 설명 대본에서 자연스러운 편입니다.",
+      "교육용/낭독용 대본처럼 문장마다 여유가 필요하면 0.5초 이상도 사용할 수 있습니다.",
+    ],
+    tip: "권장(Recommended): 0.20~0.50초, 기본(Default): 0.30초",
+  },
+};
 
 export default function Studio() {
   const { user, profile } = useAuth();
@@ -61,6 +138,7 @@ export default function Studio() {
   const [slotStatus, setSlotStatus] = useState("");
   const [presetVer, setPresetVer] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [helpKey, setHelpKey] = useState(null);
   const sampleRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -280,6 +358,31 @@ export default function Studio() {
       )}
 
       {/* 공용 계정 안내 모달 */}
+      {helpKey && HELP[helpKey] && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setHelpKey(null)}>
+          <div className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-lg font-bold text-slate-800">{HELP[helpKey].title}</h3>
+              <button onClick={() => setHelpKey(null)} aria-label="닫기"
+                className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">✕</button>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{HELP[helpKey].intro}</p>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
+              {HELP[helpKey].bullets.map((b, i) => <li key={i}>{b}</li>)}
+            </ul>
+            <div className="mt-4 rounded-lg bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700">
+              {HELP[helpKey].tip}
+            </div>
+            <button onClick={() => setHelpKey(null)}
+              className="mt-5 w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
       {showShareNotice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
@@ -449,7 +552,7 @@ export default function Studio() {
         <div className="grid gap-4 sm:grid-cols-2">
           {/* 목소리 */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">목소리</label>
+            <InfoLabel text="목소리(Voice)" onInfo={() => setHelpKey("voice")} />
             <div className="flex items-center gap-2">
               <VoiceSelect value={voice} onChange={setVoice} className="flex-1" />
               <button onClick={toggleSample}
@@ -462,17 +565,17 @@ export default function Studio() {
 
           {/* 언어 */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-500">언어</label>
+            <InfoLabel text="언어(Language)" onInfo={() => setHelpKey("language")} />
             <select value={lang} onChange={(e) => setLang(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500">
               {LANGS.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
             </select>
           </div>
 
-          <PresetSelect label="속도 선택(Speed)" value={speed} options={SPEED_OPTS} onChange={(v) => setSpeed(Number(v))} />
-          <PresetSelect label="단계 선택(Steps)" value={totalStep} options={STEP_OPTS} onChange={(v) => setTotalStep(Number(v))} />
-          <PresetSelect label="청크 선택(Chunk)" value={maxChunk} options={CHUNK_OPTS} onChange={(v) => setMaxChunk(v)} />
-          <PresetSelect label="무음 선택(Silence)" value={silence} options={SILENCE_OPTS} onChange={(v) => setSilence(Number(v))} />
+          <PresetSelect label="속도 선택(Speed)" value={speed} options={SPEED_OPTS} onChange={(v) => setSpeed(Number(v))} onInfo={() => setHelpKey("speed")} />
+          <PresetSelect label="단계 선택(Steps)" value={totalStep} options={STEP_OPTS} onChange={(v) => setTotalStep(Number(v))} onInfo={() => setHelpKey("steps")} />
+          <PresetSelect label="청크 선택(Chunk)" value={maxChunk} options={CHUNK_OPTS} onChange={(v) => setMaxChunk(v)} onInfo={() => setHelpKey("chunk")} />
+          <PresetSelect label="무음 선택(Silence)" value={silence} options={SILENCE_OPTS} onChange={(v) => setSilence(Number(v))} onInfo={() => setHelpKey("silence")} />
         </div>
         <audio ref={sampleRef} onEnded={() => setPlaying(false)} className="hidden" />
       </section>
