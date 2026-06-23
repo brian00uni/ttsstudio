@@ -94,20 +94,17 @@ async function pollJob(jobId) {
 }
 
 // payload: { text, voice, lang, speed, total_step }
+// Always go through the async job + poll path. Synthesis on the free CPU tier
+// is slow (~0.1s/char), so a synchronous request for anything but a short clip
+// outlives the edge proxy timeout and returns 502. The job endpoint responds
+// immediately with a job_id and we poll, so no single request is held long
+// enough to time out, regardless of text length.
 export async function synthesize(payload) {
-  if ((payload.text || "").length > 2500) {
-    const res = await fetch("/api/tts-job", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const started = await readJson(res);
-    return pollJob(started.job_id);
-  }
-  const res = await fetch("/api/tts", {
+  const res = await fetch("/api/tts-job", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return readJson(res);
+  const started = await readJson(res);
+  return pollJob(started.job_id);
 }
