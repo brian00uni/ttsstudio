@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import unicodedata
 from pathlib import Path
@@ -121,6 +122,79 @@ def sanitize_tts_text(text: str) -> str:
             continue
         cleaned.append(char)
     return "".join(cleaned).strip()
+
+
+# Safe per-segment character ceiling. The bundled supertonic chunker only
+# splits on sentence/paragraph punctuation and never hard-splits an oversized
+# sentence, so a long delimiter-free passage stays one giant chunk. When the
+# resulting text-token length (Hangul ~2.1x after NFKD) exceeds the duration
+# predictor's latent length for a given voice, the vector-estimator attention
+# fails with a broadcast error ("N by M"). Short voices (e.g. female styles)
+# predict shorter durations and hit this first. Enforcing a hard length cap
+# here guarantees latent > text for every voice.
+SAFE_CHUNK_LENGTH_KO = 100
+SAFE_CHUNK_LENGTH_DEFAULT = 300
+
+_SENTENCE_END_PATTERN = re.compile(r"(?<=[.!?…。！？])\s+")
+
+
+def _hard_split(sentence: str, max_len: int) -> list[str]:
+    """Split a single oversized sentence into <= max_len pieces by spaces, then characters."""
+    out: list[str] = []
+    cur = ""
+    for token in sentence.split(" "):
+        if not token:
+            continue
+        if len(token) > max_len:
+            if cur:
+                out.append(cur)
+                cur = ""
+            for i in range(0, len(token), max_len):
+                out.append(token[i : i + max_len])
+        elif cur and len(cur) + 1 + len(token) > max_len:
+            out.append(cur)
+            cur = token
+        else:
+            cur = f"{cur} {token}" if cur else token
+    if cur:
+        out.append(cur)
+    return out
+
+
+def segment_text(text: str, max_len: int) -> list[str]:
+    """Greedily pack text into segments no longer than max_len characters.
+
+    Respects paragraph (blank line) and sentence boundaries where possible, and
+    hard-splits any sentence that is still too long so no segment can exceed the cap.
+    """
+    max_len = max(10, int(max_len))
+    segments: list[str] = []
+    cur = ""
+
+    def flush() -> None:
+        nonlocal cur
+        if cur.strip():
+            segments.append(cur.strip())
+        cur = ""
+
+    for paragraph in re.split(r"\n+", text):
+        paragraph = paragraph.strip()
+        if not paragraph:
+            flush()
+            continue
+        for sentence in _SENTENCE_END_PATTERN.split(paragraph):
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+            if len(sentence) > max_len:
+                flush()
+                segments.extend(_hard_split(sentence, max_len))
+                continue
+            if cur and len(cur) + 1 + len(sentence) > max_len:
+                flush()
+            cur = f"{cur} {sentence}" if cur else sentence
+    flush()
+    return segments or [text.strip()]
 
 
 class Supertonic3Engine:
@@ -256,12 +330,24 @@ class Supertonic3Engine:
             style = tts.get_voice_style(voice_name=voice)
             voice_label = voice
 
+        # Enforce a hard per-segment length cap. The bundled chunker won't split a
+        # long delimiter-free passage, which makes long Korean text fail on voices
+        # whose predicted duration is shorter than the text-token length. Pre-split
+        # here and join with blank lines so the chunker keeps our safe boundaries.
+        if max_chunk_length is not None:
+            resolved_chunk = int(max_chunk_length)
+        elif lang == "ko":
+            resolved_chunk = SAFE_CHUNK_LENGTH_KO
+        else:
+            resolved_chunk = SAFE_CHUNK_LENGTH_DEFAULT
+        text = "\n\n".join(segment_text(text, resolved_chunk))
+
         wav, duration = tts.synthesize(
             text,
             voice_style=style,
             total_steps=int(total_step),
             speed=float(speed),
-            max_chunk_length=max_chunk_length,
+            max_chunk_length=resolved_chunk,
             silence_duration=float(silence_duration),
             lang=lang,
             verbose=bool(verbose),
