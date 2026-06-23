@@ -1,6 +1,37 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext.jsx";
+import { recordVisit } from "../lib/visits";
+
+function VisitCounter() {
+  const [counts, setCounts] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    recordVisit()
+      .then((c) => { if (alive) setCounts(c); })
+      .catch(() => { /* counter is optional; ignore if schema not applied */ });
+    return () => { alive = false; };
+  }, []);
+
+  const fmt = (n) => (counts ? n.toLocaleString() : "—");
+
+  return (
+    <div className="mb-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+        <span>👣</span> 사이트 방문
+      </div>
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span>전체</span>
+        <span className="font-semibold tabular-nums text-slate-700">{fmt(counts?.total)}</span>
+      </div>
+      <div className="mt-0.5 flex items-center justify-between text-xs text-slate-500">
+        <span>오늘</span>
+        <span className="font-semibold tabular-nums text-brand-600">{fmt(counts?.today)}</span>
+      </div>
+    </div>
+  );
+}
 
 function NavItem({ to, label, icon }) {
   return (
@@ -85,6 +116,7 @@ export default function AppShell({ children }) {
           <NavItem to="/history" label="TTS 생성 내역" icon="🗂️" />
         </nav>
         <div className="mt-auto pt-4">
+          <VisitCounter />
           <ProfileMenu />
         </div>
       </aside>
