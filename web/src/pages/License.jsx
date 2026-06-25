@@ -81,11 +81,11 @@ export default function License() {
 
       <Section title="핵심 요약">
         <ol className="list-decimal space-y-1.5 pl-5">
-          <li>본 서비스는 Supertonic 3 기반 전용 TTS 도구입니다. 공식 Supertone/SYSTRAN 제품이 아닙니다.</li>
-          <li>FFmpeg는 서버 내부 WAV→MP3 변환에만 사용하며, 사용자에게 FFmpeg 바이너리나 Docker 이미지를 제공하지 않습니다.</li>
-          <li>“무료 다운로드”·“무료 로컬 사용”이 무제한 권리 부여를 뜻하지는 않습니다. 코드(MIT)와 모델 가중치(OpenRAIL-M) 조건은 별개입니다.</li>
+          <li>본 서비스는 Supertonic 3 기반 전용 TTS 웹 서비스입니다. 공식 Supertone/SYSTRAN 제품이 아닙니다.</li>
+          <li>FFmpeg는 서버 내부 WAV→MP3 변환에만 사용하며, 사용자에게 FFmpeg 바이너리를 직접 제공하지 않습니다.</li>
+          <li>“무료 이용”이 무제한 권리 부여를 뜻하지는 않습니다. 코드(MIT)와 모델 가중치(OpenRAIL-M) 조건은 별개입니다.</li>
           <li>생성한 텍스트·음성·자막·공개 콘텐츠에 대한 책임은 이용자에게 있습니다.</li>
-          <li>향후 Docker 이미지·설치 패키지·온프레미스 납품 등 배포를 시작하면 이 고지와 FFmpeg 빌드 옵션을 다시 검토해야 합니다.</li>
+          <li>향후 설치 패키지 배포·온프레미스 납품·FFmpeg 바이너리 제공 등 서비스 형태를 변경하면 이 고지와 FFmpeg 빌드 옵션을 다시 검토해야 합니다.</li>
         </ol>
       </Section>
 
@@ -116,11 +116,12 @@ export default function License() {
         </p>
       </Section>
 
-      <Section title="개인정보 · 운영 설정">
+      <Section title="개인정보 · 데이터 보관">
         <ul className="list-disc space-y-1.5 pl-5">
-          <li>스크립트·SRT·VTT·입력 로그 등 사이드카 파일을 저장하지 않도록 설정할 수 있습니다.</li>
-          <li>생성된 음성·아티팩트는 일정 보존 시간(TTL, 기본 1시간) 후 삭제하도록 설정할 수 있습니다.</li>
-          <li>사용량 로그는 통계만 저장하며 본문 텍스트·IP는 저장하지 않습니다.</li>
+          <li>로그인 시 이메일·계정 정보가 인증(Supabase Auth)에 저장됩니다.</li>
+          <li>생성한 입력 본문 텍스트·음성(MP3)·자막(SRT)은 계정에 연결되어 저장되며, “생성 내역” 페이지에서 다시 확인·다운로드할 수 있습니다.</li>
+          <li>저장된 항목은 자동으로 삭제되지 않습니다. “생성 내역”에서 직접 삭제할 때 음성 파일과 기록이 함께 제거됩니다.</li>
+          <li>오디오 다운로드 링크(서명 URL)는 보안을 위해 발급 후 약 1시간이 지나면 만료됩니다. 이는 링크 만료일 뿐, 저장된 파일 자체가 삭제되는 것은 아닙니다.</li>
           <li>서버 측 TTS 특성상, 처리 중 메모리 접근 자체는 제거할 수 없습니다.</li>
         </ul>
       </Section>
