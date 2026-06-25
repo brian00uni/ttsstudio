@@ -109,7 +109,7 @@ def create_app(engine_factory: Callable[[], Any] | None = None) -> Flask:
         tts_text = sanitize_tts_text(text)
         if not tts_text:
             raise ValueError("text is empty after removing unsupported characters")
-        filename = f"supertonic3_{time.strftime('%Y%m%d_%H%M%S')}_{int(time.time() * 1000) % 1000:03d}.wav"
+        filename = f"ts_{time.strftime('%m%d')}_{uuid.uuid4().hex[:4]}.wav"
         out = output_dir / filename
         with engine_lock:
             info = get_engine().synthesize_to_file(
