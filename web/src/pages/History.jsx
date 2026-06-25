@@ -18,6 +18,20 @@ function truncate(t) {
   return s.length > 10 ? s.slice(0, 10) + "…" : s || "(내용 없음)";
 }
 
+async function downloadAudio(row, url) {
+  // Supabase signed URLs are cross-origin, so the <a download> attribute is
+  // ignored by browsers (it would open the file instead). Fetch the bytes and
+  // download via a blob URL to force a real download with our filename.
+  if (!url) return;
+  const blob = await (await fetch(url)).blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objUrl;
+  a.download = (row.audio_path || "audio.mp3").split("/").pop();
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(objUrl);
+}
+
 function downloadSrt(row) {
   const blob = new Blob([row.srt_text || ""], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -106,10 +120,10 @@ export default function History() {
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">{fmtDuration(r.duration)}</td>
                     <td className="px-4 py-3 text-center">
                       {audioUrls[r.id] ? (
-                        <a href={audioUrls[r.id]} download title="오디오 다운로드" onClick={(e) => e.stopPropagation()}
+                        <button onClick={(e) => { e.stopPropagation(); downloadAudio(r, audioUrls[r.id]); }} title="오디오 다운로드"
                           className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200">
                           ⬇ MP3
-                        </a>
+                        </button>
                       ) : <span className="text-xs text-slate-300">-</span>}
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -187,10 +201,10 @@ export default function History() {
 
             <div className="flex flex-wrap gap-2 border-t border-slate-100 p-4">
               {audioUrls[selected.id] && (
-                <a href={audioUrls[selected.id]} download
+                <button onClick={() => downloadAudio(selected, audioUrls[selected.id])}
                   className="rounded-lg bg-secondary-600 px-4 py-2 text-sm font-medium text-white hover:bg-secondary-700">
                   MP3 다운로드
-                </a>
+                </button>
               )}
               {selected.srt_text && (
                 <button onClick={() => downloadSrt(selected)}
